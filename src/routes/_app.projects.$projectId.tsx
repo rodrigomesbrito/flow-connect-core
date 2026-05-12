@@ -75,25 +75,25 @@ function ProjectDashboard() {
       label: "Open Action Items",
       value: project.openActionItems,
       icon: CheckSquare,
-      tone: "info" as const,
+      iconClass: "bg-info/15 text-info",
     },
     {
       label: "Open Issues",
       value: project.openIssues,
       icon: AlertTriangle,
-      tone: "destructive" as const,
+      iconClass: "bg-destructive/15 text-destructive",
     },
     {
       label: "Recent Decisions",
       value: project.recentDecisions,
       icon: Gavel,
-      tone: "success" as const,
+      iconClass: "bg-success/15 text-success",
     },
     {
       label: "Upcoming Meetings",
       value: project.upcomingMeetings,
       icon: CalendarClock,
-      tone: "warning" as const,
+      iconClass: "bg-warning/20 text-warning-foreground",
     },
   ];
 
