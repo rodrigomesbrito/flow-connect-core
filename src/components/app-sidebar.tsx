@@ -35,10 +35,10 @@ const homeItems = [
 ];
 
 const spaces = [
-  { id: "product", title: "Product", color: "oklch(0.62 0.22 300)" },
-  { id: "marketing", title: "Marketing", color: "oklch(0.62 0.18 250)" },
-  { id: "qe", title: "Quality Engineering", color: "oklch(0.65 0.18 152)" },
-  { id: "design", title: "Design System", color: "oklch(0.78 0.16 75)" },
+  { id: "bryant-farms", title: "Bryant Farms Rd", color: "oklch(0.62 0.18 250)" },
+  { id: "northlake-bridge", title: "Northlake Bridge", color: "oklch(0.62 0.22 300)" },
+  { id: "stormwater-iv", title: "Stormwater IV", color: "oklch(0.7 0.13 200)" },
+  { id: "airport-taxiway", title: "Airport Taxiway", color: "oklch(0.78 0.16 75)" },
 ];
 
 const channels = [
