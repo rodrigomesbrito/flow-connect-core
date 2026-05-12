@@ -10,39 +10,42 @@ import type { DecisionStatus } from "@/lib/decisions/store";
 
 const CONFIG: Record<
   DecisionStatus,
-  { label: string; icon: typeof Check; className: string }
+  { label: string; icon: typeof Check; pill: string; dot: string }
 > = {
   Proposed: {
     label: "Proposed",
     icon: CircleDashed,
-    className:
-      "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
+    pill: "bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30",
+    dot: "bg-amber-500",
   },
   Approved: {
     label: "Approved",
     icon: Check,
-    className:
-      "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+    pill: "bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30",
+    dot: "",
   },
   Reverted: {
     label: "Reverted",
     icon: Undo2,
-    className:
-      "bg-muted text-muted-foreground border-border line-through decoration-1",
+    pill: "bg-slate-100 text-slate-500 border-slate-200 dark:bg-muted dark:text-muted-foreground dark:border-border line-through decoration-1",
+    dot: "bg-slate-400",
   },
 };
 
 export function StatusBadge({ status }: { status: DecisionStatus }) {
   const cfg = CONFIG[status];
-  const Icon = cfg.icon;
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
-        cfg.className,
+        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-tight",
+        cfg.pill,
       )}
     >
-      <Icon className="h-3 w-3" />
+      {status === "Approved" ? (
+        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+      ) : (
+        <span className={cn("h-1.5 w-1.5 rounded-full", cfg.dot)} />
+      )}
       {cfg.label}
     </span>
   );
@@ -59,7 +62,10 @@ export function DecisionStatusMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="outline-none">
+        <button
+          type="button"
+          className="outline-none transition-opacity hover:opacity-80"
+        >
           <StatusBadge status={value} />
         </button>
       </DropdownMenuTrigger>
