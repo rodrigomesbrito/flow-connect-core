@@ -65,6 +65,7 @@ const writeMeetings = (projectId: string, list: Meeting[]) => {
 
 const readPublished = (projectId: string, kind: ItemKind): PublishedItem[] => {
   if (typeof window === "undefined") return [];
+  ensureSeeded(projectId);
   return safeParse<PublishedItem[]>(localStorage.getItem(PUB_KEY(projectId, kind)), []);
 };
 
