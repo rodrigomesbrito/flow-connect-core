@@ -22,7 +22,7 @@ import { useMeetings, type Meeting, type MeetingStatus } from "@/lib/meetings/st
 import { NewMeetingDialog } from "@/components/meetings/NewMeetingDialog";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_app/projects/$projectId/meetings")({
+export const Route = createFileRoute("/_app/projects/$projectId/meetings/")({
   loader: ({ params }) => {
     const project = getProject(params.projectId);
     if (!project) throw notFound();
