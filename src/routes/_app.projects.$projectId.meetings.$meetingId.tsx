@@ -159,6 +159,37 @@ function MeetingDetailPage() {
   );
 }
 
+const RE_ACTION = /^(\s*)(\[action(?:\s+@[^\]]+)?\])(\s*)(.*)$/i;
+const RE_ISSUE = /^(\s*)(\[issue\])(\s*)(.*)$/i;
+const RE_DECISION = /^(\s*)(\[decision\])(\s*)(.*)$/i;
+
+type LineKind = "action" | "issue" | "decision" | null;
+
+function classifyLine(line: string): LineKind {
+  if (RE_ACTION.test(line)) return "action";
+  if (RE_ISSUE.test(line)) return "issue";
+  if (RE_DECISION.test(line)) return "decision";
+  return null;
+}
+
+const LINE_STYLES: Record<Exclude<LineKind, null>, { bg: string; bar: string; tag: string }> = {
+  action: {
+    bg: "bg-primary/10",
+    bar: "bg-primary",
+    tag: "text-primary font-semibold",
+  },
+  issue: {
+    bg: "bg-amber-500/10",
+    bar: "bg-amber-500",
+    tag: "text-amber-700 dark:text-amber-400 font-semibold",
+  },
+  decision: {
+    bg: "bg-emerald-500/10",
+    bar: "bg-emerald-500",
+    tag: "text-emerald-700 dark:text-emerald-400 font-semibold",
+  },
+};
+
 function NotesPanel({
   notes,
   onChange,
@@ -168,6 +199,18 @@ function NotesPanel({
   onChange: (v: string) => void;
   readOnly: boolean;
 }) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    if (overlayRef.current && textareaRef.current) {
+      overlayRef.current.scrollTop = textareaRef.current.scrollTop;
+      overlayRef.current.scrollLeft = textareaRef.current.scrollLeft;
+    }
+  };
+
+  const lines = notes.length === 0 ? [""] : notes.split("\n");
+
   return (
     <section className="flex flex-col rounded-xl border border-border bg-card min-h-0">
       <header className="px-4 py-2.5 border-b border-border flex items-center justify-between">
@@ -181,14 +224,63 @@ function NotesPanel({
           </span>
         </div>
       </header>
-      <textarea
-        value={notes}
-        onChange={(e) => onChange(e.target.value)}
-        readOnly={readOnly}
-        placeholder={`Type freely. Mark items with brackets, e.g.:\n\n[decision] Approve bid package #3\n[issue] Utility relocation delay on STA 12+50\n[action @Joey Cox] Send updated schedule by Friday\n[action] Confirm easement filing window`}
-        className="flex-1 w-full resize-none p-4 text-sm font-mono leading-relaxed bg-transparent outline-none placeholder:text-muted-foreground/60"
-        spellCheck={false}
-      />
+      <div className="relative flex-1 min-h-0">
+        {/* Highlight overlay — mirrors textarea content */}
+        <div
+          ref={overlayRef}
+          aria-hidden
+          className="absolute inset-0 overflow-hidden p-4 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words pointer-events-none text-foreground"
+        >
+          {lines.map((line, i) => {
+            const kind = classifyLine(line);
+            if (!kind) {
+              return (
+                <div key={i} className="min-h-[1.625rem]">
+                  {line || "\u200B"}
+                </div>
+              );
+            }
+            const styles = LINE_STYLES[kind];
+            const match =
+              kind === "action"
+                ? line.match(RE_ACTION)
+                : kind === "issue"
+                  ? line.match(RE_ISSUE)
+                  : line.match(RE_DECISION);
+            return (
+              <div
+                key={i}
+                className={cn(
+                  "relative min-h-[1.625rem] -mx-2 px-2 rounded-sm",
+                  styles.bg,
+                )}
+              >
+                <span className={cn("absolute left-0 top-0 bottom-0 w-0.5 rounded-r", styles.bar)} />
+                {match ? (
+                  <>
+                    {match[1]}
+                    <span className={styles.tag}>{match[2]}</span>
+                    {match[3]}
+                    {match[4] || "\u200B"}
+                  </>
+                ) : (
+                  line
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <textarea
+          ref={textareaRef}
+          value={notes}
+          onChange={(e) => onChange(e.target.value)}
+          onScroll={handleScroll}
+          readOnly={readOnly}
+          placeholder={`Type freely. Mark items with brackets, e.g.:\n\n[decision] Approve bid package #3\n[issue] Utility relocation delay on STA 12+50\n[action @Joey Cox] Send updated schedule by Friday\n[action] Confirm easement filing window`}
+          className="relative w-full h-full resize-none p-4 text-sm font-mono leading-relaxed bg-transparent outline-none placeholder:text-muted-foreground/60 caret-foreground text-transparent selection:bg-primary/30 selection:text-transparent"
+          spellCheck={false}
+        />
+      </div>
     </section>
   );
 }
