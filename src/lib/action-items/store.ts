@@ -64,6 +64,8 @@ export const createActionItem = (
     dueDate?: string;
     priority?: ActionPriority;
     status?: ActionStatus;
+    linkedIssueId?: string;
+    linkedIssueText?: string;
   },
 ): ActionItem => {
   const item: ActionItem = {
@@ -75,6 +77,8 @@ export const createActionItem = (
     priority: input.priority ?? "Medium",
     dueDate: input.dueDate,
     origin: "manual",
+    linkedIssueId: input.linkedIssueId,
+    linkedIssueText: input.linkedIssueText,
     createdAt: new Date().toISOString(),
   };
   write(projectId, [item, ...read(projectId)]);
@@ -85,7 +89,16 @@ export const updateActionItem = (
   projectId: string,
   id: string,
   patch: Partial<
-    Pick<ActionItem, "text" | "assignee" | "status" | "priority" | "dueDate">
+    Pick<
+      ActionItem,
+      | "text"
+      | "assignee"
+      | "status"
+      | "priority"
+      | "dueDate"
+      | "linkedIssueId"
+      | "linkedIssueText"
+    >
   >,
 ) => {
   const list = read(projectId);
