@@ -146,6 +146,7 @@ function MeetingDetailPage() {
           notes={notesDraft}
           onChange={handleNotesChange}
           readOnly={!isLive}
+          highlightLine={search.line}
         />
         <ItemsPanel
           projectId={project.id}
