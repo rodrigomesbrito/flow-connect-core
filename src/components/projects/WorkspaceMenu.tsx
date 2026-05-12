@@ -39,26 +39,29 @@ export function WorkspaceMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="w-full flex items-center gap-2 rounded-md p-2 hover:bg-sidebar-accent transition-colors text-left group"
+          className="w-full group flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all duration-200 text-left"
           aria-label="Open workspace menu"
         >
           <span
-            className="size-8 rounded-md grid place-items-center text-white shrink-0"
-            style={{ backgroundColor: current.color }}
+            className="size-10 rounded-lg grid place-items-center text-white shrink-0 shadow-lg"
+            style={{
+              backgroundColor: current.color,
+              boxShadow: `0 8px 20px -8px ${current.color}`,
+            }}
           >
-            <FolderKanban className="size-4" />
+            <FolderKanban className="size-5" />
           </span>
           {!collapsed && (
             <>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold truncate text-sidebar-foreground">
-                  {current.name}
-                </div>
-                <div className="text-[11px] text-sidebar-foreground/60 truncate">
+              <div className="min-w-0 flex-1 flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40 leading-tight">
                   Workspace
-                </div>
+                </span>
+                <span className="text-sm font-semibold truncate text-sidebar-foreground group-hover:text-[oklch(0.82_0.13_240)] transition-colors">
+                  {current.name}
+                </span>
               </div>
-              <ChevronsUpDown className="size-3.5 text-sidebar-foreground/60 shrink-0" />
+              <ChevronsUpDown className="size-3.5 text-white/30 group-hover:text-white/60 shrink-0 transition-colors" />
             </>
           )}
         </button>
