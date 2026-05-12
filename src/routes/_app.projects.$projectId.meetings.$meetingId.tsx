@@ -277,7 +277,7 @@ function NotesPanel({
           onScroll={handleScroll}
           readOnly={readOnly}
           placeholder={`Type freely. Mark items with brackets, e.g.:\n\n[decision] Approve bid package #3\n[issue] Utility relocation delay on STA 12+50\n[action @Joey Cox] Send updated schedule by Friday\n[action] Confirm easement filing window`}
-          className="relative w-full h-full resize-none p-4 text-sm font-mono leading-relaxed bg-transparent outline-none placeholder:text-muted-foreground/60 caret-foreground text-foreground"
+          className="relative w-full h-full resize-none p-4 text-sm font-mono leading-relaxed bg-transparent outline-none placeholder:text-muted-foreground/60 caret-foreground text-transparent selection:bg-primary/30 selection:text-transparent"
           spellCheck={false}
         />
       </div>
