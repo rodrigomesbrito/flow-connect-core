@@ -36,7 +36,7 @@ export function AppTopbar({ showSidebarTrigger = true }: { showSidebarTrigger?: 
           <div className="size-6 rounded-md bg-primary text-primary-foreground grid place-items-center">
             <Sparkles className="size-3.5" />
           </div>
-          Mango Tech
+          Relay
         </Link>
       </div>
 
