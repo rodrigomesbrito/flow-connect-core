@@ -303,10 +303,10 @@ export const ensureSeeded = (projectId: string) => {
     return;
   }
 
-  // Fresh seed v2: wipe any pre-existing meetings/actions for this project
-  // (older seed lacked rich action item variety).
+  // Fresh seed v3: wipe any pre-existing meetings/actions/decision meta for this project.
   localStorage.removeItem(KEY(projectId));
   localStorage.removeItem(ACTIONS_KEY(projectId));
+  localStorage.removeItem(DECISION_META_KEY(projectId));
   (["action", "issue", "decision"] as const).forEach((kind) => {
     localStorage.removeItem(PUB_KEY(projectId, kind));
   });
