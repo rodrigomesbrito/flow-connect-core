@@ -25,7 +25,14 @@ import { ItemCard } from "@/components/meetings/ItemCard";
 import { EndMeetingDialog } from "@/components/meetings/EndMeetingDialog";
 import { cn } from "@/lib/utils";
 
+type MeetingSearch = { line?: number };
+
 export const Route = createFileRoute("/_app/projects/$projectId/meetings/$meetingId")({
+  validateSearch: (s: Record<string, unknown>): MeetingSearch => {
+    const raw = s.line;
+    const n = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
+    return Number.isFinite(n) && n > 0 ? { line: n } : {};
+  },
   loader: ({ params }) => {
     const project = getProject(params.projectId);
     if (!project) throw notFound();
@@ -40,6 +47,7 @@ export const Route = createFileRoute("/_app/projects/$projectId/meetings/$meetin
 function MeetingDetailPage() {
   const { project } = Route.useLoaderData();
   const { meetingId } = Route.useParams();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const meeting = useMeeting(project.id, meetingId);
 
@@ -138,6 +146,7 @@ function MeetingDetailPage() {
           notes={notesDraft}
           onChange={handleNotesChange}
           readOnly={!isLive}
+          highlightLine={search.line}
         />
         <ItemsPanel
           projectId={project.id}
@@ -159,7 +168,7 @@ function MeetingDetailPage() {
   );
 }
 
-const RE_ACTION = /^(\s*)(\[action(?:\s+@[^\]]+)?\])(\s*)(.*)$/i;
+const RE_ACTION = /^(\s*(?:executar\s+)?)(\[action(?:\s+@[^\]]+)?\])(\s*)(.*)$/i;
 const RE_ISSUE = /^(\s*)(\[issue\])(\s*)(.*)$/i;
 const RE_DECISION = /^(\s*)(\[decision\])(\s*)(.*)$/i;
 
@@ -194,13 +203,31 @@ function NotesPanel({
   notes,
   onChange,
   readOnly,
+  highlightLine,
 }: {
   notes: string;
   onChange: (v: string) => void;
   readOnly: boolean;
+  highlightLine?: number;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [pulseLine, setPulseLine] = useState<number | undefined>(highlightLine);
+
+  // When user lands with ?line=N, scroll the textarea to that line and
+  // pulse-highlight it briefly. Re-runs whenever the param changes.
+  useEffect(() => {
+    if (!highlightLine) return;
+    setPulseLine(highlightLine);
+    const ta = textareaRef.current;
+    if (ta) {
+      // Approximate line height from computed style (font-size * leading-relaxed ≈ 1.625).
+      const lh = parseFloat(getComputedStyle(ta).lineHeight) || 22;
+      ta.scrollTop = Math.max(0, (highlightLine - 3) * lh);
+    }
+    const t = setTimeout(() => setPulseLine(undefined), 2400);
+    return () => clearTimeout(t);
+  }, [highlightLine]);
 
   const handleScroll = () => {
     if (overlayRef.current && textareaRef.current) {
@@ -232,10 +259,18 @@ function NotesPanel({
           className="absolute inset-0 overflow-hidden p-4 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words pointer-events-none text-foreground"
         >
           {lines.map((line, i) => {
+            const lineNum = i + 1;
+            const isPulse = pulseLine === lineNum;
             const kind = classifyLine(line);
             if (!kind) {
               return (
-                <div key={i} className="min-h-[1.625rem]">
+                <div
+                  key={i}
+                  className={cn(
+                    "min-h-[1.625rem] -mx-2 px-2 rounded-sm",
+                    isPulse && "bg-primary/15 ring-2 ring-primary animate-pulse",
+                  )}
+                >
                   {line || "\u200B"}
                 </div>
               );
@@ -253,6 +288,7 @@ function NotesPanel({
                 className={cn(
                   "relative min-h-[1.625rem] -mx-2 px-2 rounded-sm",
                   styles.bg,
+                  isPulse && "ring-2 ring-primary animate-pulse",
                 )}
               >
                 <span className={cn("absolute left-0 top-0 bottom-0 w-0.5 rounded-r", styles.bar)} />

@@ -77,7 +77,9 @@ const writePublished = (projectId: string, kind: ItemKind, items: PublishedItem[
 
 /* ---------------- parser ---------------- */
 
-const RE_ACTION = /^\s*\[action(?:\s+@([^\]]+))?\]\s*(.+?)\s*$/i;
+// Action lines accept an optional leading verb prefix (e.g. "executar ") before the marker,
+// so notes like "executar [action @Joey] ship doc" still create an action item.
+const RE_ACTION = /^\s*(?:executar\s+)?\[action(?:\s+@([^\]]+))?\]\s*(.+?)\s*$/i;
 const RE_ISSUE = /^\s*\[issue\]\s*(.+?)\s*$/i;
 const RE_DECISION = /^\s*\[decision\]\s*(.+?)\s*$/i;
 
@@ -165,6 +167,9 @@ export const updateMeetingNotes = (projectId: string, id: string, notes: string)
     m.id === id ? { ...m, notes, items: parseNotes(notes, m.items) } : m,
   );
   writeMeetings(projectId, next);
+  // Live sync: keep Action Items in sync as the user types in a Live meeting.
+  const updated = next.find((m) => m.id === id);
+  if (updated) syncActionsFromMeeting(updated);
 };
 
 export const updateMeetingMeta = (

@@ -1,13 +1,26 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   AlertCircle,
   CalendarIcon,
+  Copy,
+  ExternalLink,
   MoreHorizontal,
   Pencil,
   Trash2,
   User,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -34,6 +47,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import {
   deleteActionItem,
+  duplicateActionItem,
   isDueToday,
   isOverdue,
   updateActionItem,
@@ -64,6 +78,10 @@ export function ActionItemRow({
   const dueToday = isDueToday(item);
   const due = item.dueDate ? new Date(item.dueDate) : undefined;
   const isDone = item.status === "Done";
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const fromMeeting = item.origin === "meeting" && item.meetingId;
+  const meetingSearch = item.sourceLine ? { line: item.sourceLine } : {};
 
   return (
     <div
@@ -78,20 +96,45 @@ export function ActionItemRow({
         onChange={(next) => updateActionItem(projectId, item.id, { status: next })}
       />
 
-      {/* Text */}
+      {/* Text — clickable when from meeting (jumps to source line) */}
       <Tooltip delayDuration={400}>
         <TooltipTrigger asChild>
-          <div
-            className={cn(
-              "min-w-0 truncate text-sm cursor-default",
-              isDone && "line-through",
-            )}
-          >
-            {item.text}
-          </div>
+          {fromMeeting ? (
+            <Link
+              to="/projects/$projectId/meetings/$meetingId"
+              params={{ projectId, meetingId: item.meetingId! }}
+              search={meetingSearch}
+              className={cn(
+                "min-w-0 truncate text-sm flex items-center gap-1.5 hover:text-primary transition-colors",
+                isDone && "line-through",
+              )}
+            >
+              <span className="truncate">{item.text}</span>
+              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-60 shrink-0" />
+            </Link>
+          ) : (
+            <div
+              className={cn(
+                "min-w-0 truncate text-sm cursor-default",
+                isDone && "line-through",
+              )}
+            >
+              {item.text}
+            </div>
+          )}
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-md">
-          {item.text}
+          {fromMeeting ? (
+            <div className="space-y-1">
+              <div>{item.text}</div>
+              <div className="text-[10px] opacity-70">
+                From "{item.meetingTitle}"
+                {item.sourceLine && ` · line ${item.sourceLine}`}
+              </div>
+            </div>
+          ) : (
+            item.text
+          )}
         </TooltipContent>
       </Tooltip>
 
@@ -186,13 +229,17 @@ export function ActionItemRow({
 
       {/* Origin */}
       <div className="text-[11px]">
-        {item.origin === "meeting" && item.meetingId ? (
+        {fromMeeting ? (
           <Link
             to="/projects/$projectId/meetings/$meetingId"
-            params={{ projectId, meetingId: item.meetingId }}
-            className="rounded border border-border bg-muted/50 px-1.5 py-0.5 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+            params={{ projectId, meetingId: item.meetingId! }}
+            search={meetingSearch}
+            className="inline-flex items-center gap-1 rounded border border-border bg-muted/50 px-1.5 py-0.5 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
           >
             Meeting
+            {item.sourceLine && (
+              <span className="opacity-70">L{item.sourceLine}</span>
+            )}
           </Link>
         ) : (
           <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
@@ -216,15 +263,42 @@ export function ActionItemRow({
           <DropdownMenuItem onClick={() => onEdit(item)}>
             <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => duplicateActionItem(projectId, item.id)}>
+            <Copy className="mr-2 h-3.5 w-3.5" /> Duplicate
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
-            onClick={() => deleteActionItem(projectId, item.id)}
+            onSelect={(e) => {
+              e.preventDefault();
+              setConfirmOpen(true);
+            }}
           >
             <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this action item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the item permanently. If it came from a meeting, the
+              original meeting note is unchanged.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteActionItem(projectId, item.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

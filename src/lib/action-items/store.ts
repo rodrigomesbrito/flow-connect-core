@@ -111,6 +111,30 @@ export const deleteActionItem = (projectId: string, id: string) => {
   );
 };
 
+/* Duplicate an item — always becomes a new manual item, status reset to Open. */
+export const duplicateActionItem = (
+  projectId: string,
+  id: string,
+): ActionItem | undefined => {
+  const list = read(projectId);
+  const src = list.find((it) => it.id === id);
+  if (!src) return undefined;
+  const copy: ActionItem = {
+    ...src,
+    id: newId(),
+    text: `${src.text} (copy)`,
+    origin: "manual",
+    meetingId: undefined,
+    meetingTitle: undefined,
+    sourceLine: undefined,
+    status: "Open",
+    completedAt: undefined,
+    createdAt: new Date().toISOString(),
+  };
+  write(projectId, [copy, ...list]);
+  return copy;
+};
+
 /* Sync from a completed meeting — upsert action items by stable parser id. */
 export const syncActionsFromMeeting = (meeting: Meeting) => {
   const list = read(meeting.projectId);
