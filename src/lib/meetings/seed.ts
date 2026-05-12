@@ -288,18 +288,22 @@ export const ensureSeeded = (projectId: string) => {
   if (seeded.has(projectId)) return;
   seeded.add(projectId);
 
-  // Don't reseed if user already has data or seed flag set
+  // Don't reseed if v2 seed flag is set
   if (localStorage.getItem(SEED_FLAG(projectId))) return;
-  if (localStorage.getItem(KEY(projectId))) {
-    localStorage.setItem(SEED_FLAG(projectId), "1");
-    return;
-  }
 
   const raw = SEEDS[projectId];
   if (!raw || raw.length === 0) {
     localStorage.setItem(SEED_FLAG(projectId), "1");
     return;
   }
+
+  // Fresh seed v2: wipe any pre-existing meetings/actions for this project
+  // (older seed lacked rich action item variety).
+  localStorage.removeItem(KEY(projectId));
+  localStorage.removeItem(ACTIONS_KEY(projectId));
+  (["action", "issue", "decision"] as const).forEach((kind) => {
+    localStorage.removeItem(PUB_KEY(projectId, kind));
+  });
 
   const meetings: Meeting[] = raw
     .map(({ _publish: _p, ...m }) => ({
