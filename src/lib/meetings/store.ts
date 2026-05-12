@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { ensureSeeded } from "./seed";
 
 export type ItemKind = "action" | "issue" | "decision";
 
