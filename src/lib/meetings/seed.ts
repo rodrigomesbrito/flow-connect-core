@@ -377,27 +377,65 @@ export const ensureSeeded = (projectId: string) => {
     });
   });
 
-  // A couple of manual items per project to demonstrate the manual origin.
+  // A richer set of manual items per project to make the Action Items screen
+  // feel like a real working environment (varied status, priority, due dates,
+  // assignees including "Me" so the My Tasks tab is populated).
   const projectAttendees = Array.from(
     new Set(raw.flatMap((m) => m.attendees)),
   );
   const pick = (i: number) => projectAttendees[i % projectAttendees.length];
 
-  const manualSeeds: Array<Omit<ActionItem, "id" | "projectId" | "origin" | "createdAt">> = [
-    {
-      text: "Review weekly safety report",
-      assignee: pick(0),
-      status: "Open",
-      priority: "Medium",
-      dueDate: isoDate(1),
-    },
-    {
-      text: "Update project risk register",
-      assignee: pick(1),
-      status: "In Progress",
-      priority: "High",
-      dueDate: isoDate(-2),
-    },
+  type ManualSeed = Omit<ActionItem, "id" | "projectId" | "origin" | "createdAt">;
+
+  const MANUAL_BY_PROJECT: Record<string, ManualSeed[]> = {
+    "bryant-farms": [
+      { text: "Review weekly safety report and circulate to crew leads", assignee: "Me", status: "Open", priority: "High", dueDate: isoDate(0) },
+      { text: "Update project risk register with utility delay scenarios", assignee: pick(1), status: "In Progress", priority: "High", dueDate: isoDate(-2) },
+      { text: "Submit monthly progress invoice to owner", assignee: "Me", status: "Open", priority: "Medium", dueDate: isoDate(3) },
+      { text: "Schedule survey crew for STA 14+00 layout check", assignee: pick(3), status: "Open", priority: "Medium", dueDate: isoDate(1) },
+      { text: "Collect signed easement from parcel #214", assignee: pick(0), status: "In Progress", priority: "High", dueDate: isoDate(-5) },
+      { text: "Order traffic control devices for phase 2", assignee: pick(2), status: "Done", priority: "Medium" },
+      { text: "Verify asphalt mix design submittal #18", assignee: pick(4), status: "Open", priority: "Low", dueDate: isoDate(7) },
+      { text: "Update look-ahead schedule in P6", assignee: "Me", status: "Open", priority: "Medium", dueDate: isoDate(2) },
+      { text: "Close out RFI #042 — driveway grading", assignee: pick(1), status: "Done", priority: "Low" },
+    ],
+    "northlake-bridge": [
+      { text: "Compile 60% design review package", assignee: "Me", status: "In Progress", priority: "High", dueDate: isoDate(4) },
+      { text: "Coordinate USACE pre-application meeting", assignee: pick(2), status: "Open", priority: "High", dueDate: isoDate(-1) },
+      { text: "Reconcile micropile cost delta with estimating", assignee: pick(4), status: "Open", priority: "Medium", dueDate: isoDate(5) },
+      { text: "Draft public notice for detour rollout", assignee: "Me", status: "Open", priority: "Medium", dueDate: isoDate(8) },
+      { text: "Review hydraulic report appendix C", assignee: pick(1), status: "Done", priority: "Low" },
+      { text: "Confirm survey baseline at Pier 2 abutment", assignee: pick(3), status: "In Progress", priority: "Medium", dueDate: isoDate(0) },
+      { text: "File ROW exhibits with county recorder", assignee: pick(0), status: "Open", priority: "High", dueDate: isoDate(-3) },
+    ],
+    "airport-taxiway": [
+      { text: "Submit revised NOTAM dates to FAA", assignee: pick(0), status: "Open", priority: "High", dueDate: isoDate(-1) },
+      { text: "Brief night crew on perimeter lighting plan", assignee: "Me", status: "Open", priority: "Medium", dueDate: isoDate(0) },
+      { text: "Confirm cargo carrier exception window", assignee: pick(1), status: "In Progress", priority: "High", dueDate: isoDate(2) },
+      { text: "Procure additional reflective cones (250 ct)", assignee: pick(2), status: "Done", priority: "Medium" },
+      { text: "Update FOD walk checklist for night ops", assignee: "Me", status: "Open", priority: "Low", dueDate: isoDate(6) },
+      { text: "Coordinate fuel truck staging with airfield ops", assignee: pick(3), status: "Open", priority: "Medium", dueDate: isoDate(1) },
+    ],
+    "stormwater-iv": [
+      { text: "Order #57 stone for northeast undercut", assignee: pick(0), status: "In Progress", priority: "High", dueDate: isoDate(-1) },
+      { text: "Schedule concrete pour for outlet structure", assignee: "Me", status: "Open", priority: "High", dueDate: isoDate(2) },
+      { text: "Update SWPPP for Basin C grading change", assignee: pick(2), status: "Open", priority: "Medium", dueDate: isoDate(4) },
+      { text: "Coordinate erosion control inspection", assignee: pick(1), status: "Done", priority: "Low" },
+      { text: "Submit weekly stormwater monitoring report", assignee: "Me", status: "Open", priority: "Medium", dueDate: isoDate(0) },
+    ],
+    "westside-water": [
+      { text: "Issue early-order PO for 24\" butterfly valves", assignee: pick(0), status: "In Progress", priority: "High", dueDate: isoDate(-2) },
+      { text: "Validate budget impact of long-lead items", assignee: "Me", status: "Open", priority: "High", dueDate: isoDate(1) },
+      { text: "Review pressure zone hydraulic model", assignee: pick(2), status: "Open", priority: "Medium", dueDate: isoDate(5) },
+      { text: "Coordinate water shutdown notice with utility", assignee: pick(1), status: "Open", priority: "Medium", dueDate: isoDate(7) },
+      { text: "Finalize procurement matrix for board approval", assignee: "Me", status: "Done", priority: "Medium" },
+      { text: "Walk down tie-in location at Cedar/9th", assignee: pick(0), status: "Open", priority: "Low", dueDate: isoDate(3) },
+    ],
+  };
+
+  const manualSeeds: ManualSeed[] = MANUAL_BY_PROJECT[projectId] ?? [
+    { text: "Review weekly safety report", assignee: pick(0), status: "Open", priority: "Medium", dueDate: isoDate(1) },
+    { text: "Update project risk register", assignee: pick(1), status: "In Progress", priority: "High", dueDate: isoDate(-2) },
   ];
 
   manualSeeds.forEach((m, i) => {
@@ -405,7 +443,8 @@ export const ensureSeeded = (projectId: string) => {
       id: `a_seed_manual_${projectId}_${i}`,
       projectId,
       origin: "manual",
-      createdAt: isoDate(-5),
+      createdAt: isoDate(-5 - i),
+      completedAt: m.status === "Done" ? isoDate(-1 - i) : undefined,
       ...m,
     });
   });
