@@ -229,7 +229,7 @@ function NotesPanel({
         <div
           ref={overlayRef}
           aria-hidden
-          className="absolute inset-0 overflow-hidden p-4 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words pointer-events-none text-transparent selection:bg-transparent"
+          className="absolute inset-0 overflow-hidden p-4 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words pointer-events-none text-foreground"
         >
           {lines.map((line, i) => {
             const kind = classifyLine(line);
