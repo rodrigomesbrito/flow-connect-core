@@ -1,27 +1,23 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  Users,
   CalendarClock,
   CheckSquare,
   Gavel,
   AlertTriangle,
-  Settings,
-  ArrowLeft,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ProjectSwitcher } from "./ProjectSwitcher";
+import { WorkspaceMenu } from "./WorkspaceMenu";
 import type { Project } from "@/lib/mock/projects";
 
 export function ProjectSidebar({ project }: { project: Project }) {
@@ -32,7 +28,6 @@ export function ProjectSidebar({ project }: { project: Project }) {
   const base = `/projects/${project.id}`;
   const items = [
     { title: "Dashboard", url: base, icon: LayoutDashboard, exact: true },
-    { title: "Directory", url: `${base}/directory`, icon: Users },
     { title: "Meetings", url: `${base}/meetings`, icon: CalendarClock },
     {
       title: "Action Items",
@@ -47,7 +42,6 @@ export function ProjectSidebar({ project }: { project: Project }) {
       icon: AlertTriangle,
       badge: project.openIssues,
     },
-    { title: "Settings", url: `${base}/settings`, icon: Settings },
   ];
 
   const isActive = (url: string, exact?: boolean) =>
@@ -56,29 +50,11 @@ export function ProjectSidebar({ project }: { project: Project }) {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-2">
-        <ProjectSwitcher current={project} collapsed={collapsed} />
+        <WorkspaceMenu current={project} collapsed={collapsed} />
       </SidebarHeader>
 
       <SidebarContent className="gap-1">
         <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="All projects" className="text-sidebar-foreground/70">
-                  <Link to="/projects">
-                    <ArrowLeft className="size-4" />
-                    <span>All projects</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50">
-            Project
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
