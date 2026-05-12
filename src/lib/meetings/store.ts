@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { ensureSeeded } from "./seed";
 import { syncActionsFromMeeting } from "@/lib/action-items/store";
+import { syncIssuesFromMeeting } from "@/lib/issues/store";
 
 export type ItemKind = "action" | "issue" | "decision";
 
