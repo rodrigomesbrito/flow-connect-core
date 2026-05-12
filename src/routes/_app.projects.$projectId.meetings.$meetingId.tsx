@@ -25,7 +25,14 @@ import { ItemCard } from "@/components/meetings/ItemCard";
 import { EndMeetingDialog } from "@/components/meetings/EndMeetingDialog";
 import { cn } from "@/lib/utils";
 
+type MeetingSearch = { line?: number };
+
 export const Route = createFileRoute("/_app/projects/$projectId/meetings/$meetingId")({
+  validateSearch: (s: Record<string, unknown>): MeetingSearch => {
+    const raw = s.line;
+    const n = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
+    return Number.isFinite(n) && n > 0 ? { line: n } : {};
+  },
   loader: ({ params }) => {
     const project = getProject(params.projectId);
     if (!project) throw notFound();
