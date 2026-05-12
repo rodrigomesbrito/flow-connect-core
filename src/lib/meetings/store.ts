@@ -167,6 +167,9 @@ export const updateMeetingNotes = (projectId: string, id: string, notes: string)
     m.id === id ? { ...m, notes, items: parseNotes(notes, m.items) } : m,
   );
   writeMeetings(projectId, next);
+  // Live sync: keep Action Items in sync as the user types in a Live meeting.
+  const updated = next.find((m) => m.id === id);
+  if (updated) syncActionsFromMeeting(updated);
 };
 
 export const updateMeetingMeta = (
