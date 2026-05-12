@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { projects } from "@/lib/mock/projects";
 
-export const Route = createFileRoute("/_app/projects")({
+export const Route = createFileRoute("/_app/projects/")({
   head: () => ({
     meta: [
       { title: "Projects — Mango Tech" },
