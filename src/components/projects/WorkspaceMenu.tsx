@@ -3,6 +3,7 @@ import {
   ChevronsUpDown,
   Settings as SettingsIcon,
   Users,
+  Building2,
   Check,
   Plus,
   FolderKanban,
