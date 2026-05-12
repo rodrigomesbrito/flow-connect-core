@@ -125,7 +125,7 @@ function DirectoryPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return members.filter((m) => {
+    return members.filter((m: Member) => {
       if (roleFilter !== "All" && m.role !== roleFilter) return false;
       if (!q) return true;
       return (
@@ -139,7 +139,7 @@ function DirectoryPage() {
 
   const orgGroups = useMemo(() => {
     const map = new Map<string, Member[]>();
-    members.forEach((m) => {
+    members.forEach((m: Member) => {
       const arr = map.get(m.org) ?? [];
       arr.push(m);
       map.set(m.org, arr);
@@ -175,11 +175,11 @@ function DirectoryPage() {
         <StatCard label="Organizations" value={orgGroups.length} />
         <StatCard
           label="Active"
-          value={members.filter((m) => m.status === "Active").length}
+          value={members.filter((m: Member) => m.status === "Active").length}
         />
         <StatCard
           label="Pending invites"
-          value={members.filter((m) => m.status === "Pending").length}
+          value={members.filter((m: Member) => m.status === "Pending").length}
         />
       </div>
 
