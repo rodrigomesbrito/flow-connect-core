@@ -159,7 +159,7 @@ function MeetingDetailPage() {
   );
 }
 
-const RE_ACTION = /^(\s*)(\[action(?:\s+@[^\]]+)?\])(\s*)(.*)$/i;
+const RE_ACTION = /^(\s*(?:executar\s+)?)(\[action(?:\s+@[^\]]+)?\])(\s*)(.*)$/i;
 const RE_ISSUE = /^(\s*)(\[issue\])(\s*)(.*)$/i;
 const RE_DECISION = /^(\s*)(\[decision\])(\s*)(.*)$/i;
 
