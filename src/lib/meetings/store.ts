@@ -77,7 +77,9 @@ const writePublished = (projectId: string, kind: ItemKind, items: PublishedItem[
 
 /* ---------------- parser ---------------- */
 
-const RE_ACTION = /^\s*\[action(?:\s+@([^\]]+))?\]\s*(.+?)\s*$/i;
+// Action lines accept an optional leading verb prefix (e.g. "executar ") before the marker,
+// so notes like "executar [action @Joey] ship doc" still create an action item.
+const RE_ACTION = /^\s*(?:executar\s+)?\[action(?:\s+@([^\]]+))?\]\s*(.+?)\s*$/i;
 const RE_ISSUE = /^\s*\[issue\]\s*(.+?)\s*$/i;
 const RE_DECISION = /^\s*\[decision\]\s*(.+?)\s*$/i;
 
