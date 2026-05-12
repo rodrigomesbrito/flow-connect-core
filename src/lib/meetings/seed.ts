@@ -475,7 +475,7 @@ export const ensureSeeded = (projectId: string) => {
   toPublish.forEach((m) => {
     const items = parseNotes(m.notes).filter((it) => it.kind === "decision");
     items.forEach((it) => {
-      const status = STATUS_CYCLE[dCursor % STATUS_CYCLE.length];
+      const status = STATUS_CYCLE_DEC[dCursor % STATUS_CYCLE_DEC.length];
       const decidedBy = m.attendees[dCursor % Math.max(1, m.attendees.length)];
       dCursor++;
       decisionMeta[it.id] = {
