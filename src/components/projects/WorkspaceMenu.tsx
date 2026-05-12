@@ -43,10 +43,10 @@ export function WorkspaceMenu({
           aria-label="Open workspace menu"
         >
           <span
-            className="size-8 rounded-md grid place-items-center text-white text-xs font-semibold shrink-0"
+            className="size-8 rounded-md grid place-items-center text-white shrink-0"
             style={{ backgroundColor: current.color }}
           >
-            {initials}
+            <FolderKanban className="size-4" />
           </span>
           {!collapsed && (
             <>
