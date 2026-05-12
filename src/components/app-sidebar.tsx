@@ -35,10 +35,10 @@ const homeItems = [
 ];
 
 const spaces = [
-  { title: "Product", url: "/projects/product", color: "bg-[oklch(0.62_0.24_350)]" },
-  { title: "Marketing", url: "/projects/marketing", color: "bg-[oklch(0.62_0.24_350)]" },
-  { title: "Quality Engineering", url: "/projects/qe", color: "bg-[oklch(0.62_0.18_245)]" },
-  { title: "Design", url: "/projects/design", color: "bg-[oklch(0.65_0.18_152)]" },
+  { id: "product", title: "Product", color: "oklch(0.62 0.22 300)" },
+  { id: "marketing", title: "Marketing", color: "oklch(0.62 0.18 250)" },
+  { id: "qe", title: "Quality Engineering", color: "oklch(0.65 0.18 152)" },
+  { id: "design", title: "Design System", color: "oklch(0.78 0.16 75)" },
 ];
 
 const channels = [
