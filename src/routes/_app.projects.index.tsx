@@ -1,87 +1,85 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, FolderKanban, MoreHorizontal } from "lucide-react";
+import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Plus, FolderSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { ProjectCard } from "@/components/projects/ProjectCard";
+import { ProjectsOverview } from "@/components/projects/ProjectsOverview";
+import {
+  ProjectsToolbar,
+  defaultFilters,
+  type ProjectFilters,
+} from "@/components/projects/ProjectsToolbar";
 import { projects } from "@/lib/mock/projects";
 
 export const Route = createFileRoute("/_app/projects/")({
   head: () => ({
     meta: [
       { title: "Projects — Mango Tech" },
-      { name: "description", content: "All projects in your workspace." },
+      { name: "description", content: "Manage and track all active projects." },
     ],
   }),
   component: ProjectsPage,
 });
 
 function ProjectsPage() {
+  const [filters, setFilters] = useState<ProjectFilters>(defaultFilters);
+
+  const filtered = useMemo(() => {
+    const q = filters.query.trim().toLowerCase();
+    return projects.filter((p) => {
+      if (q && !p.name.toLowerCase().includes(q)) return false;
+      if (filters.status !== "All" && p.status !== filters.status) return false;
+      if (filters.phase !== "All" && p.phase !== filters.phase) return false;
+      if (filters.owner !== "All" && p.ownerOrg !== filters.owner) return false;
+      return true;
+    });
+  }, [filters]);
+
   return (
     <div className="px-6 py-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Pick a project to open its dashboard.
+            Manage and track all active projects.
           </p>
         </div>
         <Button>
           <Plus className="size-4" />
-          New project
+          New Project
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {projects.map((p) => (
-          <Link
-            key={p.id}
-            to="/projects/$projectId"
-            params={{ projectId: p.id }}
-            className="group relative bg-card border border-border rounded-xl p-5 hover:border-foreground/20 hover:shadow-sm transition-all"
+      <ProjectsToolbar filters={filters} onChange={setFilters} />
+
+      <ProjectsOverview projects={filtered} />
+
+      {filtered.length === 0 ? (
+        <div className="bg-card border border-dashed border-border rounded-xl py-16 px-6 text-center">
+          <div className="size-12 rounded-full bg-muted grid place-items-center mx-auto mb-3 text-muted-foreground">
+            <FolderSearch className="size-5" />
+          </div>
+          <h3 className="text-sm font-semibold">No projects match your filters</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Try adjusting search or clearing filters.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() => setFilters(defaultFilters)}
           >
-            <div className="flex items-start justify-between mb-4">
-              <div
-                className="size-10 rounded-lg grid place-items-center text-white shrink-0"
-                style={{ backgroundColor: p.color }}
-              >
-                <FolderKanban className="size-5" />
-              </div>
-              <button
-                onClick={(e) => e.preventDefault()}
-                className="size-7 rounded-md hover:bg-muted grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <MoreHorizontal className="size-4" />
-              </button>
-            </div>
-            <h3 className="font-semibold text-base">{p.name}</h3>
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{p.description}</p>
-
-            <div className="flex items-center gap-2 mt-4">
-              <Badge
-                variant="secondary"
-                className={
-                  p.status === "Active"
-                    ? "bg-success/15 text-success hover:bg-success/15"
-                    : "bg-muted text-muted-foreground"
-                }
-              >
-                {p.status}
-              </Badge>
-              <Badge variant="outline" className="font-normal">
-                {p.phase}
-              </Badge>
-            </div>
-
-            <div className="flex items-center justify-between mt-5 pt-4 border-t border-border text-xs text-muted-foreground">
-              <span>
-                <span className="font-medium text-foreground">{p.openActionItems}</span> open items
-              </span>
-              <span>
-                <span className="font-medium text-foreground">{p.members}</span> members
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
+            Clear filters
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((p) => (
+            <ProjectCard key={p.id} project={p} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
