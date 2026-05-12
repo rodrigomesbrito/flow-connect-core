@@ -9,7 +9,8 @@ import {
 
 const KEY = (projectId: string) => `mango.meetings.${projectId}`;
 const PUB_KEY = (projectId: string, kind: ItemKind) => `mango.${kind}s.${projectId}`;
-const SEED_FLAG = (projectId: string) => `mango.meetings.${projectId}.seeded.v1`;
+const SEED_FLAG = (projectId: string) => `mango.meetings.${projectId}.seeded.v2`;
+const ACTIONS_KEY = (projectId: string) => `mango.actionItems.${projectId}`;
 
 const daysAgo = (n: number, h = 9, m = 0) => {
   const d = new Date();
