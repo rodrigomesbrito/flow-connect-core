@@ -203,13 +203,31 @@ function NotesPanel({
   notes,
   onChange,
   readOnly,
+  highlightLine,
 }: {
   notes: string;
   onChange: (v: string) => void;
   readOnly: boolean;
+  highlightLine?: number;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [pulseLine, setPulseLine] = useState<number | undefined>(highlightLine);
+
+  // When user lands with ?line=N, scroll the textarea to that line and
+  // pulse-highlight it briefly. Re-runs whenever the param changes.
+  useEffect(() => {
+    if (!highlightLine) return;
+    setPulseLine(highlightLine);
+    const ta = textareaRef.current;
+    if (ta) {
+      // Approximate line height from computed style (font-size * leading-relaxed ≈ 1.625).
+      const lh = parseFloat(getComputedStyle(ta).lineHeight) || 22;
+      ta.scrollTop = Math.max(0, (highlightLine - 3) * lh);
+    }
+    const t = setTimeout(() => setPulseLine(undefined), 2400);
+    return () => clearTimeout(t);
+  }, [highlightLine]);
 
   const handleScroll = () => {
     if (overlayRef.current && textareaRef.current) {
