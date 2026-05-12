@@ -47,6 +47,7 @@ export const Route = createFileRoute("/_app/projects/$projectId/meetings/$meetin
 function MeetingDetailPage() {
   const { project } = Route.useLoaderData();
   const { meetingId } = Route.useParams();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const meeting = useMeeting(project.id, meetingId);
 
