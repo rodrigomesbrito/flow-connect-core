@@ -16,13 +16,21 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { getProject } from "@/lib/mock/projects";
 import {
   useMeeting,
+  useMeetings,
   updateMeetingNotes,
   updateMeetingMeta,
   removeItem,
   type ItemKind,
 } from "@/lib/meetings/store";
+import { useActionItems } from "@/lib/action-items/store";
 import { ItemCard } from "@/components/meetings/ItemCard";
 import { EndMeetingDialog } from "@/components/meetings/EndMeetingDialog";
+import {
+  MentionPopover,
+  getMentionContext,
+  filterPeople,
+  type MentionPerson,
+} from "@/components/meetings/MentionPopover";
 import { cn } from "@/lib/utils";
 
 type MeetingSearch = { line?: number };
@@ -50,6 +58,28 @@ function MeetingDetailPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const meeting = useMeeting(project.id, meetingId);
+  const allMeetings = useMeetings(project.id);
+  const actionItems = useActionItems(project.id);
+
+  const people: MentionPerson[] = useMemo(() => {
+    const inMeeting = new Set((meeting?.attendees ?? []).map((a) => a.trim()).filter(Boolean));
+    const others = new Set<string>();
+    allMeetings.forEach((m) =>
+      m.attendees.forEach((a) => {
+        const t = a.trim();
+        if (t && !inMeeting.has(t)) others.add(t);
+      }),
+    );
+    actionItems.forEach((it) => {
+      const t = it.assignee?.trim();
+      if (t && !inMeeting.has(t)) others.add(t);
+    });
+    const sorted = (s: Set<string>) => Array.from(s).sort((a, b) => a.localeCompare(b));
+    return [
+      ...sorted(inMeeting).map((name) => ({ name, inMeeting: true })),
+      ...sorted(others).map((name) => ({ name, inMeeting: false })),
+    ];
+  }, [meeting, allMeetings, actionItems]);
 
   const [notesDraft, setNotesDraft] = useState("");
   const [endOpen, setEndOpen] = useState(false);
@@ -147,6 +177,7 @@ function MeetingDetailPage() {
           onChange={handleNotesChange}
           readOnly={!isLive}
           highlightLine={search.line}
+          people={people}
         />
         <ItemsPanel
           projectId={project.id}
@@ -204,15 +235,94 @@ function NotesPanel({
   onChange,
   readOnly,
   highlightLine,
+  people,
 }: {
   notes: string;
   onChange: (v: string) => void;
   readOnly: boolean;
   highlightLine?: number;
+  people: MentionPerson[];
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
   const [pulseLine, setPulseLine] = useState<number | undefined>(highlightLine);
+
+  // Mention popover state
+  const [mention, setMention] = useState<{
+    open: boolean;
+    query: string;
+    start: number;
+    top: number;
+    left: number;
+    activeIndex: number;
+  }>({ open: false, query: "", start: 0, top: 0, left: 0, activeIndex: 0 });
+
+  const suggestions = useMemo(
+    () => (mention.open ? filterPeople(people, mention.query) : []),
+    [mention.open, mention.query, people],
+  );
+
+  const closeMention = () =>
+    setMention((m) => (m.open ? { ...m, open: false } : m));
+
+  // Measure caret position using a hidden mirror div that mimics the textarea.
+  const measureCaret = (caret: number): { top: number; left: number } | null => {
+    const ta = textareaRef.current;
+    const mirror = mirrorRef.current;
+    if (!ta || !mirror) return null;
+    const before = ta.value.slice(0, caret);
+    mirror.textContent = before;
+    const marker = document.createElement("span");
+    marker.textContent = "\u200B";
+    mirror.appendChild(marker);
+    const rect = marker.getBoundingClientRect();
+    const taRect = ta.getBoundingClientRect();
+    mirror.removeChild(marker);
+    return {
+      top: rect.top - taRect.top + rect.height,
+      left: rect.left - taRect.left,
+    };
+  };
+
+  const refreshMention = () => {
+    const ta = textareaRef.current;
+    if (!ta || readOnly) return;
+    const ctx = getMentionContext(ta.value, ta.selectionStart);
+    if (!ctx) {
+      closeMention();
+      return;
+    }
+    const pos = measureCaret(ctx.start + 1 + ctx.query.length);
+    if (!pos) return;
+    setMention((m) => ({
+      open: true,
+      query: ctx.query,
+      start: ctx.start,
+      top: pos.top + 4,
+      left: Math.max(8, pos.left - 8),
+      activeIndex: m.open && m.start === ctx.start ? Math.min(m.activeIndex, 5) : 0,
+    }));
+  };
+
+  const insertMention = (name: string) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const replaceFrom = mention.start + 1; // after the '@'
+    const replaceTo = replaceFrom + mention.query.length;
+    ta.focus();
+    ta.setSelectionRange(replaceFrom, replaceTo);
+    // Use execCommand when available for native undo; fall back to setRangeText.
+    const inserted = `${name} `;
+    const ok =
+      typeof document.execCommand === "function" &&
+      document.execCommand("insertText", false, inserted);
+    if (!ok) {
+      ta.setRangeText(inserted, replaceFrom, replaceTo, "end");
+      onChange(ta.value);
+    }
+    closeMention();
+  };
 
   // When user lands with ?line=N, scroll the textarea to that line and
   // pulse-highlight it briefly. Re-runs whenever the param changes.
@@ -309,13 +419,78 @@ function NotesPanel({
         <textarea
           ref={textareaRef}
           value={notes}
-          onChange={(e) => onChange(e.target.value)}
-          onScroll={handleScroll}
+          onChange={(e) => {
+            onChange(e.target.value);
+            // Defer so selectionStart reflects the new value.
+            queueMicrotask(refreshMention);
+          }}
+          onKeyDown={(e) => {
+            if (!mention.open || suggestions.length === 0) {
+              if (e.key === "Escape" && mention.open) closeMention();
+              return;
+            }
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setMention((m) => ({
+                ...m,
+                activeIndex: (m.activeIndex + 1) % suggestions.length,
+              }));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setMention((m) => ({
+                ...m,
+                activeIndex:
+                  (m.activeIndex - 1 + suggestions.length) % suggestions.length,
+              }));
+            } else if (e.key === "Enter" || e.key === "Tab") {
+              e.preventDefault();
+              insertMention(suggestions[mention.activeIndex].name);
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              closeMention();
+            }
+          }}
+          onKeyUp={(e) => {
+            // Arrow keys / clicks change caret without changing value.
+            if (
+              e.key === "ArrowLeft" ||
+              e.key === "ArrowRight" ||
+              e.key === "ArrowUp" ||
+              e.key === "ArrowDown" ||
+              e.key === "Home" ||
+              e.key === "End"
+            ) {
+              refreshMention();
+            }
+          }}
+          onClick={refreshMention}
+          onBlur={() => setTimeout(closeMention, 120)}
+          onScroll={() => {
+            handleScroll();
+            if (mention.open) closeMention();
+          }}
           readOnly={readOnly}
           placeholder={`Type freely. Mark items with brackets, e.g.:\n\n[decision] Approve bid package #3\n[issue] Utility relocation delay on STA 12+50\n[action @Joey Cox] Send updated schedule by Friday\n[action] Confirm easement filing window`}
           className="relative w-full h-full resize-none p-4 text-sm font-mono leading-relaxed bg-transparent outline-none placeholder:text-muted-foreground/60 caret-foreground text-transparent selection:bg-primary/30 selection:text-transparent"
           spellCheck={false}
         />
+        {/* Hidden mirror for caret position measurement */}
+        <div
+          ref={mirrorRef}
+          aria-hidden
+          className="absolute inset-0 invisible overflow-hidden p-4 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words pointer-events-none"
+        />
+        {mention.open && (
+          <MentionPopover
+            people={suggestions}
+            activeIndex={mention.activeIndex}
+            onSelect={insertMention}
+            onHover={(i) =>
+              setMention((m) => ({ ...m, activeIndex: i }))
+            }
+            style={{ top: mention.top, left: mention.left }}
+          />
+        )}
       </div>
     </section>
   );
