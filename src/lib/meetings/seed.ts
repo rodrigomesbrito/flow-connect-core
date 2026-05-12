@@ -6,11 +6,17 @@ import {
   type ActionPriority,
   type ActionStatus,
 } from "@/lib/action-items/store";
+import {
+  seedDecisionMeta,
+  type DecisionMeta,
+  type DecisionStatus,
+} from "@/lib/decisions/store";
 
 const KEY = (projectId: string) => `mango.meetings.${projectId}`;
 const PUB_KEY = (projectId: string, kind: ItemKind) => `mango.${kind}s.${projectId}`;
-const SEED_FLAG = (projectId: string) => `mango.meetings.${projectId}.seeded.v2`;
+const SEED_FLAG = (projectId: string) => `mango.meetings.${projectId}.seeded.v3`;
 const ACTIONS_KEY = (projectId: string) => `mango.actionItems.${projectId}`;
+const DECISION_META_KEY = (projectId: string) => `mango.decisionMeta.${projectId}`;
 
 const daysAgo = (n: number, h = 9, m = 0) => {
   const d = new Date();
@@ -297,10 +303,10 @@ export const ensureSeeded = (projectId: string) => {
     return;
   }
 
-  // Fresh seed v2: wipe any pre-existing meetings/actions for this project
-  // (older seed lacked rich action item variety).
+  // Fresh seed v3: wipe any pre-existing meetings/actions/decision meta for this project.
   localStorage.removeItem(KEY(projectId));
   localStorage.removeItem(ACTIONS_KEY(projectId));
+  localStorage.removeItem(DECISION_META_KEY(projectId));
   (["action", "issue", "decision"] as const).forEach((kind) => {
     localStorage.removeItem(PUB_KEY(projectId, kind));
   });
@@ -451,6 +457,41 @@ export const ensureSeeded = (projectId: string) => {
 
   if (actionItems.length > 0) {
     seedActionItems(projectId, actionItems);
+  }
+
+  // Seed Decision metadata for published decisions — vary status & decisor
+  // so the Decisions screen feels populated and realistic.
+  const STATUS_CYCLE_DEC: DecisionStatus[] = [
+    "Approved",
+    "Approved",
+    "Proposed",
+    "Approved",
+    "Reverted",
+    "Approved",
+    "Proposed",
+  ];
+  const decisionMeta: Record<string, DecisionMeta> = {};
+  let dCursor = 0;
+  toPublish.forEach((m) => {
+    const items = parseNotes(m.notes).filter((it) => it.kind === "decision");
+    items.forEach((it) => {
+      const status = STATUS_CYCLE_DEC[dCursor % STATUS_CYCLE_DEC.length];
+      const decidedBy = m.attendees[dCursor % Math.max(1, m.attendees.length)];
+      dCursor++;
+      decisionMeta[it.id] = {
+        status,
+        decidedBy: status === "Proposed" ? undefined : decidedBy,
+        decidedAt: status === "Approved" ? m.completedAt : undefined,
+        notes:
+          status === "Reverted"
+            ? "Superseded after follow-up review."
+            : undefined,
+        updatedAt: m.completedAt ?? m.date,
+      };
+    });
+  });
+  if (Object.keys(decisionMeta).length > 0) {
+    seedDecisionMeta(projectId, decisionMeta);
   }
 
   localStorage.setItem(SEED_FLAG(projectId), "1");
