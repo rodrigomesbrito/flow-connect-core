@@ -459,5 +459,40 @@ export const ensureSeeded = (projectId: string) => {
     seedActionItems(projectId, actionItems);
   }
 
+  // Seed Decision metadata for published decisions — vary status & decisor
+  // so the Decisions screen feels populated and realistic.
+  const STATUS_CYCLE: DecisionStatus[] = [
+    "Approved",
+    "Approved",
+    "Proposed",
+    "Approved",
+    "Reverted",
+    "Approved",
+    "Proposed",
+  ];
+  const decisionMeta: Record<string, DecisionMeta> = {};
+  let dCursor = 0;
+  toPublish.forEach((m) => {
+    const items = parseNotes(m.notes).filter((it) => it.kind === "decision");
+    items.forEach((it) => {
+      const status = STATUS_CYCLE[dCursor % STATUS_CYCLE.length];
+      const decidedBy = m.attendees[dCursor % Math.max(1, m.attendees.length)];
+      dCursor++;
+      decisionMeta[it.id] = {
+        status,
+        decidedBy: status === "Proposed" ? undefined : decidedBy,
+        decidedAt: status === "Approved" ? m.completedAt : undefined,
+        notes:
+          status === "Reverted"
+            ? "Superseded after follow-up review."
+            : undefined,
+        updatedAt: m.completedAt ?? m.date,
+      };
+    });
+  });
+  if (Object.keys(decisionMeta).length > 0) {
+    seedDecisionMeta(projectId, decisionMeta);
+  }
+
   localStorage.setItem(SEED_FLAG(projectId), "1");
 };
