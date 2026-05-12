@@ -17,6 +17,8 @@ export type ActionItem = {
   meetingId?: string;
   meetingTitle?: string;
   sourceLine?: number;
+  linkedIssueId?: string;
+  linkedIssueText?: string;
   createdAt: string;
   completedAt?: string;
 };
