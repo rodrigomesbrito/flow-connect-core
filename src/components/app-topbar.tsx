@@ -1,5 +1,6 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, Bell, Sparkles, Edit3, LogOut } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Search, Bell, Sparkles, Edit3, LogOut, Users, Building2, FolderKanban } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -28,16 +29,19 @@ export function AppTopbar({ showSidebarTrigger = true }: { showSidebarTrigger?: 
     <header className="h-12 flex items-center gap-2 px-3 border-b border-border bg-background sticky top-0 z-30">
       {showSidebarTrigger && <SidebarTrigger className="size-8" />}
 
-      <div className="flex items-center gap-2 ml-1">
+      <div className="flex items-center gap-1 ml-1">
         <Link
           to="/projects"
-          className="text-sm font-semibold flex items-center gap-2 hover:opacity-80"
+          className="text-sm font-semibold flex items-center gap-2 hover:opacity-80 pr-2"
         >
           <div className="size-6 rounded-md bg-primary text-primary-foreground grid place-items-center">
             <Sparkles className="size-3.5" />
           </div>
           Relay
         </Link>
+        <WorkspaceNavLink to="/projects" icon={FolderKanban} label="Projects" />
+        <WorkspaceNavLink to="/people" icon={Users} label="People" />
+        <WorkspaceNavLink to="/organizations" icon={Building2} label="Organizations" />
       </div>
 
       <div className="flex-1 max-w-2xl mx-auto">
@@ -92,5 +96,32 @@ export function AppTopbar({ showSidebarTrigger = true }: { showSidebarTrigger?: 
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
+  );
+}
+
+function WorkspaceNavLink({
+  to,
+  icon: Icon,
+  label,
+}: {
+  to: "/projects" | "/people" | "/organizations";
+  icon: typeof Users;
+  label: string;
+}) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const active = pathname === to;
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs font-medium transition-colors",
+        active
+          ? "bg-muted text-foreground"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+      )}
+    >
+      <Icon className="size-3.5" />
+      {label}
+    </Link>
   );
 }

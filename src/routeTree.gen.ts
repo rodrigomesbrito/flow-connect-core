@@ -12,13 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppPeopleRouteImport } from './routes/_app.people'
+import { Route as AppOrganizationsRouteImport } from './routes/_app.organizations'
 import { Route as AppProjectsIndexRouteImport } from './routes/_app.projects.index'
 import { Route as AppProjectsProjectIdRouteImport } from './routes/_app.projects.$projectId'
 import { Route as AppProjectsProjectIdIndexRouteImport } from './routes/_app.projects.$projectId.index'
 import { Route as AppProjectsProjectIdSettingsRouteImport } from './routes/_app.projects.$projectId.settings'
 import { Route as AppProjectsProjectIdMeetingsRouteImport } from './routes/_app.projects.$projectId.meetings'
 import { Route as AppProjectsProjectIdIssuesRouteImport } from './routes/_app.projects.$projectId.issues'
-import { Route as AppProjectsProjectIdDirectoryRouteImport } from './routes/_app.projects.$projectId.directory'
 import { Route as AppProjectsProjectIdDecisionsRouteImport } from './routes/_app.projects.$projectId.decisions'
 import { Route as AppProjectsProjectIdActionItemsRouteImport } from './routes/_app.projects.$projectId.action-items'
 import { Route as AppProjectsProjectIdMeetingsIndexRouteImport } from './routes/_app.projects.$projectId.meetings.index'
@@ -37,6 +38,16 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppPeopleRoute = AppPeopleRouteImport.update({
+  id: '/people',
+  path: '/people',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrganizationsRoute = AppOrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppProjectsIndexRoute = AppProjectsIndexRouteImport.update({
   id: '/projects/',
@@ -72,12 +83,6 @@ const AppProjectsProjectIdIssuesRoute =
     path: '/issues',
     getParentRoute: () => AppProjectsProjectIdRoute,
   } as any)
-const AppProjectsProjectIdDirectoryRoute =
-  AppProjectsProjectIdDirectoryRouteImport.update({
-    id: '/directory',
-    path: '/directory',
-    getParentRoute: () => AppProjectsProjectIdRoute,
-  } as any)
 const AppProjectsProjectIdDecisionsRoute =
   AppProjectsProjectIdDecisionsRouteImport.update({
     id: '/decisions',
@@ -106,11 +111,12 @@ const AppProjectsProjectIdMeetingsMeetingIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/organizations': typeof AppOrganizationsRoute
+  '/people': typeof AppPeopleRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/projects/': typeof AppProjectsIndexRoute
   '/projects/$projectId/action-items': typeof AppProjectsProjectIdActionItemsRoute
   '/projects/$projectId/decisions': typeof AppProjectsProjectIdDecisionsRoute
-  '/projects/$projectId/directory': typeof AppProjectsProjectIdDirectoryRoute
   '/projects/$projectId/issues': typeof AppProjectsProjectIdIssuesRoute
   '/projects/$projectId/meetings': typeof AppProjectsProjectIdMeetingsRouteWithChildren
   '/projects/$projectId/settings': typeof AppProjectsProjectIdSettingsRoute
@@ -121,10 +127,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/organizations': typeof AppOrganizationsRoute
+  '/people': typeof AppPeopleRoute
   '/projects': typeof AppProjectsIndexRoute
   '/projects/$projectId/action-items': typeof AppProjectsProjectIdActionItemsRoute
   '/projects/$projectId/decisions': typeof AppProjectsProjectIdDecisionsRoute
-  '/projects/$projectId/directory': typeof AppProjectsProjectIdDirectoryRoute
   '/projects/$projectId/issues': typeof AppProjectsProjectIdIssuesRoute
   '/projects/$projectId/settings': typeof AppProjectsProjectIdSettingsRoute
   '/projects/$projectId': typeof AppProjectsProjectIdIndexRoute
@@ -136,11 +143,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/organizations': typeof AppOrganizationsRoute
+  '/_app/people': typeof AppPeopleRoute
   '/_app/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/_app/projects/': typeof AppProjectsIndexRoute
   '/_app/projects/$projectId/action-items': typeof AppProjectsProjectIdActionItemsRoute
   '/_app/projects/$projectId/decisions': typeof AppProjectsProjectIdDecisionsRoute
-  '/_app/projects/$projectId/directory': typeof AppProjectsProjectIdDirectoryRoute
   '/_app/projects/$projectId/issues': typeof AppProjectsProjectIdIssuesRoute
   '/_app/projects/$projectId/meetings': typeof AppProjectsProjectIdMeetingsRouteWithChildren
   '/_app/projects/$projectId/settings': typeof AppProjectsProjectIdSettingsRoute
@@ -153,11 +161,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/organizations'
+    | '/people'
     | '/projects/$projectId'
     | '/projects/'
     | '/projects/$projectId/action-items'
     | '/projects/$projectId/decisions'
-    | '/projects/$projectId/directory'
     | '/projects/$projectId/issues'
     | '/projects/$projectId/meetings'
     | '/projects/$projectId/settings'
@@ -168,10 +177,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/organizations'
+    | '/people'
     | '/projects'
     | '/projects/$projectId/action-items'
     | '/projects/$projectId/decisions'
-    | '/projects/$projectId/directory'
     | '/projects/$projectId/issues'
     | '/projects/$projectId/settings'
     | '/projects/$projectId'
@@ -182,11 +192,12 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/login'
+    | '/_app/organizations'
+    | '/_app/people'
     | '/_app/projects/$projectId'
     | '/_app/projects/'
     | '/_app/projects/$projectId/action-items'
     | '/_app/projects/$projectId/decisions'
-    | '/_app/projects/$projectId/directory'
     | '/_app/projects/$projectId/issues'
     | '/_app/projects/$projectId/meetings'
     | '/_app/projects/$projectId/settings'
@@ -223,6 +234,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/people': {
+      id: '/_app/people'
+      path: '/people'
+      fullPath: '/people'
+      preLoaderRoute: typeof AppPeopleRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/organizations': {
+      id: '/_app/organizations'
+      path: '/organizations'
+      fullPath: '/organizations'
+      preLoaderRoute: typeof AppOrganizationsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/projects/': {
       id: '/_app/projects/'
@@ -264,13 +289,6 @@ declare module '@tanstack/react-router' {
       path: '/issues'
       fullPath: '/projects/$projectId/issues'
       preLoaderRoute: typeof AppProjectsProjectIdIssuesRouteImport
-      parentRoute: typeof AppProjectsProjectIdRoute
-    }
-    '/_app/projects/$projectId/directory': {
-      id: '/_app/projects/$projectId/directory'
-      path: '/directory'
-      fullPath: '/projects/$projectId/directory'
-      preLoaderRoute: typeof AppProjectsProjectIdDirectoryRouteImport
       parentRoute: typeof AppProjectsProjectIdRoute
     }
     '/_app/projects/$projectId/decisions': {
@@ -325,7 +343,6 @@ const AppProjectsProjectIdMeetingsRouteWithChildren =
 interface AppProjectsProjectIdRouteChildren {
   AppProjectsProjectIdActionItemsRoute: typeof AppProjectsProjectIdActionItemsRoute
   AppProjectsProjectIdDecisionsRoute: typeof AppProjectsProjectIdDecisionsRoute
-  AppProjectsProjectIdDirectoryRoute: typeof AppProjectsProjectIdDirectoryRoute
   AppProjectsProjectIdIssuesRoute: typeof AppProjectsProjectIdIssuesRoute
   AppProjectsProjectIdMeetingsRoute: typeof AppProjectsProjectIdMeetingsRouteWithChildren
   AppProjectsProjectIdSettingsRoute: typeof AppProjectsProjectIdSettingsRoute
@@ -335,7 +352,6 @@ interface AppProjectsProjectIdRouteChildren {
 const AppProjectsProjectIdRouteChildren: AppProjectsProjectIdRouteChildren = {
   AppProjectsProjectIdActionItemsRoute: AppProjectsProjectIdActionItemsRoute,
   AppProjectsProjectIdDecisionsRoute: AppProjectsProjectIdDecisionsRoute,
-  AppProjectsProjectIdDirectoryRoute: AppProjectsProjectIdDirectoryRoute,
   AppProjectsProjectIdIssuesRoute: AppProjectsProjectIdIssuesRoute,
   AppProjectsProjectIdMeetingsRoute:
     AppProjectsProjectIdMeetingsRouteWithChildren,
@@ -347,11 +363,15 @@ const AppProjectsProjectIdRouteWithChildren =
   AppProjectsProjectIdRoute._addFileChildren(AppProjectsProjectIdRouteChildren)
 
 interface AppRouteChildren {
+  AppOrganizationsRoute: typeof AppOrganizationsRoute
+  AppPeopleRoute: typeof AppPeopleRoute
   AppProjectsProjectIdRoute: typeof AppProjectsProjectIdRouteWithChildren
   AppProjectsIndexRoute: typeof AppProjectsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppOrganizationsRoute: AppOrganizationsRoute,
+  AppPeopleRoute: AppPeopleRoute,
   AppProjectsProjectIdRoute: AppProjectsProjectIdRouteWithChildren,
   AppProjectsIndexRoute: AppProjectsIndexRoute,
 }

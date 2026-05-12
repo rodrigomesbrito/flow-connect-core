@@ -3,6 +3,7 @@ import {
   ChevronsUpDown,
   Settings as SettingsIcon,
   Users,
+  Building2,
   Check,
   Plus,
   FolderKanban,
@@ -86,17 +87,25 @@ export function WorkspaceMenu({
 
         <DropdownMenuSeparator />
 
-        {/* Workspace actions */}
+        <DropdownMenuLabel className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+          Workspace
+        </DropdownMenuLabel>
         <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to={`/projects/${current.id}/settings` as string}>
-            <SettingsIcon className="size-4 mr-2" />
-            <span>Workspace Settings</span>
+          <Link to="/people">
+            <Users className="size-4 mr-2" />
+            <span>People</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to={`/projects/${current.id}/directory` as string}>
-            <Users className="size-4 mr-2" />
-            <span>People & Permissions</span>
+          <Link to="/organizations">
+            <Building2 className="size-4 mr-2" />
+            <span>Organizations</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to={`/projects/${current.id}/settings` as string}>
+            <SettingsIcon className="size-4 mr-2" />
+            <span>Project Settings</span>
           </Link>
         </DropdownMenuItem>
 

@@ -82,12 +82,9 @@ function ProjectDashboard() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Link
-            to="/projects/$projectId/directory"
-            params={{ projectId: project.id }}
-          >
+          <Link to="/people">
             <Button variant="outline" size="sm" className="h-8">
-              <Users className="size-3.5" /> Directory
+              <Users className="size-3.5" /> People
             </Button>
           </Link>
           <Link

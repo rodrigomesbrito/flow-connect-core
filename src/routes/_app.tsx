@@ -25,12 +25,16 @@ function AppLayout() {
   const projectId = projectMatch?.[1];
   const project = projectId ? getProject(projectId) : undefined;
 
-  const sidebar =
-    pathname === "/projects"
-      ? null
-      : project
-        ? <ProjectSidebar project={project} />
-        : <AppSidebar />;
+  const isWorkspacePage =
+    pathname === "/projects" ||
+    pathname === "/people" ||
+    pathname === "/organizations";
+
+  const sidebar = isWorkspacePage
+    ? null
+    : project
+      ? <ProjectSidebar project={project} />
+      : <AppSidebar />;
 
   return (
     <SidebarProvider>
