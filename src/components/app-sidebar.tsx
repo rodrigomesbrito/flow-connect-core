@@ -114,18 +114,24 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {spaces.map((space) => (
-                <SidebarMenuItem key={space.title}>
-                  <SidebarMenuButton asChild isActive={isActive(space.url)} tooltip={space.title}>
-                    <Link to={"/projects" as string}>
-                      <span className={`size-5 rounded-md ${space.color} grid place-items-center text-[10px] font-bold text-white shrink-0`}>
-                        <FolderKanban className="size-3" />
-                      </span>
-                      <span>{space.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {spaces.map((space) => {
+                const url = `/projects/${space.id}`;
+                return (
+                  <SidebarMenuItem key={space.id}>
+                    <SidebarMenuButton asChild isActive={isActive(url)} tooltip={space.title}>
+                      <Link to="/projects/$projectId" params={{ projectId: space.id }}>
+                        <span
+                          className="size-5 rounded-md grid place-items-center text-[10px] font-bold text-white shrink-0"
+                          style={{ backgroundColor: space.color }}
+                        >
+                          <FolderKanban className="size-3" />
+                        </span>
+                        <span>{space.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
