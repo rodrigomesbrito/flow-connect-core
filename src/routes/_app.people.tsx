@@ -151,15 +151,16 @@ function PeoplePage() {
         />
       ) : (
         <TableShell>
-          <TableHeader>
-            <div className="grid grid-cols-12 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <div className="col-span-4">Name</div>
-              <div className="col-span-3">Organization</div>
-              <div className="col-span-2">Role</div>
-              <div className="col-span-2">Projects</div>
-              <div className="col-span-1 text-right">Actions</div>
-            </div>
-          </TableHeader>
+          <TableHeader
+            gridClassName="grid-cols-12"
+            columns={[
+              <span key="n" className="col-span-4">Name</span>,
+              <span key="o" className="col-span-3">Organization</span>,
+              <span key="r" className="col-span-2">Role</span>,
+              <span key="p" className="col-span-2">Projects</span>,
+              <span key="a" className="col-span-1 text-right">Actions</span>,
+            ]}
+          />
 
           {filtered.length === 0 ? (
             <NoResults
