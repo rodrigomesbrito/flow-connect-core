@@ -6,11 +6,17 @@ import {
   type ActionPriority,
   type ActionStatus,
 } from "@/lib/action-items/store";
+import {
+  seedDecisionMeta,
+  type DecisionMeta,
+  type DecisionStatus,
+} from "@/lib/decisions/store";
 
 const KEY = (projectId: string) => `mango.meetings.${projectId}`;
 const PUB_KEY = (projectId: string, kind: ItemKind) => `mango.${kind}s.${projectId}`;
-const SEED_FLAG = (projectId: string) => `mango.meetings.${projectId}.seeded.v2`;
+const SEED_FLAG = (projectId: string) => `mango.meetings.${projectId}.seeded.v3`;
 const ACTIONS_KEY = (projectId: string) => `mango.actionItems.${projectId}`;
+const DECISION_META_KEY = (projectId: string) => `mango.decisionMeta.${projectId}`;
 
 const daysAgo = (n: number, h = 9, m = 0) => {
   const d = new Date();
