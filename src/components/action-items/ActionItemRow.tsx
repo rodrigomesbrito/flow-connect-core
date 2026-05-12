@@ -1,13 +1,26 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   AlertCircle,
   CalendarIcon,
+  Copy,
+  ExternalLink,
   MoreHorizontal,
   Pencil,
   Trash2,
   User,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -34,6 +47,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import {
   deleteActionItem,
+  duplicateActionItem,
   isDueToday,
   isOverdue,
   updateActionItem,
