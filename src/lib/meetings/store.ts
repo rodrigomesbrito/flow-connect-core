@@ -242,6 +242,9 @@ export const endMeeting = (projectId: string, id: string) => {
       }));
     writePublished(projectId, kind, [...fresh, ...filtered]);
   });
+
+  // Sync action items into the operational store (upsert by stable id).
+  syncActionsFromMeeting(updated);
 };
 
 /* ---------------- hooks ---------------- */
