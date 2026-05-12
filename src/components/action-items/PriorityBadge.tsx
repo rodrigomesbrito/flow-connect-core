@@ -1,11 +1,25 @@
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ActionPriority } from "@/lib/action-items/store";
 
-const STYLES: Record<ActionPriority, string> = {
-  High: "bg-destructive/10 text-destructive border-destructive/20",
-  Medium: "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400",
-  Low: "bg-muted text-muted-foreground border-border",
+const CONFIG: Record<
+  ActionPriority,
+  { label: string; dot: string; text: string }
+> = {
+  High: {
+    label: "High",
+    dot: "bg-rose-500",
+    text: "text-foreground font-medium",
+  },
+  Medium: {
+    label: "Medium",
+    dot: "bg-amber-400",
+    text: "text-foreground",
+  },
+  Low: {
+    label: "Low",
+    dot: "bg-slate-300 dark:bg-slate-600",
+    text: "text-muted-foreground",
+  },
 };
 
 export function PriorityBadge({
@@ -15,12 +29,13 @@ export function PriorityBadge({
   priority: ActionPriority;
   className?: string;
 }) {
+  const cfg = CONFIG[priority];
   return (
-    <Badge
-      variant="outline"
-      className={cn("font-medium text-[11px] py-0 px-1.5", STYLES[priority], className)}
+    <span
+      className={cn("inline-flex items-center gap-1.5 text-xs", className)}
     >
-      {priority}
-    </Badge>
+      <span className={cn("h-2 w-2 rounded-full shrink-0", cfg.dot)} />
+      <span className={cfg.text}>{cfg.label}</span>
+    </span>
   );
 }

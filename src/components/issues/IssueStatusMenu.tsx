@@ -10,39 +10,49 @@ import type { IssueStatus } from "@/lib/issues/store";
 
 const CONFIG: Record<
   IssueStatus,
-  { label: string; icon: typeof Check; className: string }
+  { label: string; icon: typeof Check; pill: string; dot: string }
 > = {
   Open: {
     label: "Open",
     icon: CircleDot,
-    className:
-      "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30",
+    pill: "bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30",
+    dot: "bg-rose-500",
   },
   "In Review": {
     label: "In Review",
     icon: Eye,
-    className:
-      "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30",
+    pill: "bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30",
+    dot: "bg-amber-500",
   },
   Resolved: {
     label: "Resolved",
     icon: Check,
-    className:
-      "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+    pill: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-muted dark:text-muted-foreground dark:border-border",
+    dot: "bg-emerald-500",
   },
 };
 
-export function IssueStatusBadge({ status }: { status: IssueStatus }) {
+export function IssueStatusBadge({
+  status,
+  className,
+}: {
+  status: IssueStatus;
+  className?: string;
+}) {
   const cfg = CONFIG[status];
-  const Icon = cfg.icon;
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
-        cfg.className,
+        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-tight",
+        cfg.pill,
+        className,
       )}
     >
-      <Icon className="h-3 w-3" />
+      {status === "Resolved" ? (
+        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+      ) : (
+        <span className={cn("h-1.5 w-1.5 rounded-full", cfg.dot, status === "Open" && "animate-pulse")} />
+      )}
       {cfg.label}
     </span>
   );
@@ -59,7 +69,10 @@ export function IssueStatusMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="outline-none">
+        <button
+          type="button"
+          className="outline-none transition-opacity hover:opacity-80"
+        >
           <IssueStatusBadge status={value} />
         </button>
       </DropdownMenuTrigger>
