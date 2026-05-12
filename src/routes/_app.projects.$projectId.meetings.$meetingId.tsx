@@ -177,6 +177,7 @@ function MeetingDetailPage() {
           onChange={handleNotesChange}
           readOnly={!isLive}
           highlightLine={search.line}
+          people={people}
         />
         <ItemsPanel
           projectId={project.id}
