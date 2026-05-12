@@ -8,6 +8,7 @@ import {
   ExternalLink,
   MoreHorizontal,
   Pencil,
+  Shield,
   Trash2,
   User,
 } from "lucide-react";
