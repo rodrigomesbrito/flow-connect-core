@@ -461,7 +461,7 @@ export const ensureSeeded = (projectId: string) => {
 
   // Seed Decision metadata for published decisions — vary status & decisor
   // so the Decisions screen feels populated and realistic.
-  const STATUS_CYCLE: DecisionStatus[] = [
+  const STATUS_CYCLE_DEC: DecisionStatus[] = [
     "Approved",
     "Approved",
     "Proposed",
