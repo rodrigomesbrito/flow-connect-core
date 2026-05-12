@@ -76,18 +76,18 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.02 270);
 
-  /* ClickUp pink/magenta */
-  --primary: oklch(0.62 0.24 350);
+  /* ClickUp blue */
+  --primary: oklch(0.62 0.18 250);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.97 0.005 270);
-  --secondary-foreground: oklch(0.22 0.02 270);
+  --secondary: oklch(0.97 0.005 250);
+  --secondary-foreground: oklch(0.22 0.02 250);
 
-  --muted: oklch(0.97 0.005 270);
-  --muted-foreground: oklch(0.5 0.015 270);
+  --muted: oklch(0.97 0.005 250);
+  --muted-foreground: oklch(0.5 0.015 250);
 
-  --accent: oklch(0.96 0.01 320);
-  --accent-foreground: oklch(0.22 0.02 270);
+  --accent: oklch(0.96 0.015 250);
+  --accent-foreground: oklch(0.22 0.02 250);
 
   --destructive: oklch(0.6 0.23 25);
   --destructive-foreground: oklch(0.99 0 0);
