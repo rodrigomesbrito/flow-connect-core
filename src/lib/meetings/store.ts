@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { ensureSeeded } from "./seed";
 
 export type ItemKind = "action" | "issue" | "decision";
 
@@ -53,6 +54,7 @@ const safeParse = <T,>(raw: string | null, fallback: T): T => {
 
 const readMeetings = (projectId: string): Meeting[] => {
   if (typeof window === "undefined") return [];
+  ensureSeeded(projectId);
   return safeParse<Meeting[]>(localStorage.getItem(KEY(projectId)), []);
 };
 
@@ -63,6 +65,7 @@ const writeMeetings = (projectId: string, list: Meeting[]) => {
 
 const readPublished = (projectId: string, kind: ItemKind): PublishedItem[] => {
   if (typeof window === "undefined") return [];
+  ensureSeeded(projectId);
   return safeParse<PublishedItem[]>(localStorage.getItem(PUB_KEY(projectId, kind)), []);
 };
 
