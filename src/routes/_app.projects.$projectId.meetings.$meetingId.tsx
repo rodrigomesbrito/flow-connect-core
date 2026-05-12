@@ -16,13 +16,21 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { getProject } from "@/lib/mock/projects";
 import {
   useMeeting,
+  useMeetings,
   updateMeetingNotes,
   updateMeetingMeta,
   removeItem,
   type ItemKind,
 } from "@/lib/meetings/store";
+import { useActionItems } from "@/lib/action-items/store";
 import { ItemCard } from "@/components/meetings/ItemCard";
 import { EndMeetingDialog } from "@/components/meetings/EndMeetingDialog";
+import {
+  MentionPopover,
+  getMentionContext,
+  filterPeople,
+  type MentionPerson,
+} from "@/components/meetings/MentionPopover";
 import { cn } from "@/lib/utils";
 
 type MeetingSearch = { line?: number };
