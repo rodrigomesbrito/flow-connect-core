@@ -1,145 +1,136 @@
-# Meetings — captura, notas marcadas e revisão
+## Action Items — escopo
 
-## Fluxo do usuário
+Tela operacional global de execução do projeto. Meetings é a fonte principal, mas o usuário também pode criar items manualmente. Items publicados de meetings continuam sendo a referência rastreável; campos operacionais (status, due, priority, assignee) podem ser editados na própria tela.
 
-```text
-/meetings  →  [+ New meeting] (modal)
-                ├─ Title, Date, Attendees (multi-select do mock)
-                └─ Start meeting  →  abre detalhe (status: Live)
+## Modelo de dados
 
-/meetings/$meetingId  (Live)
-  ┌────────────────────────────┬──────────────────────────┐
-  │ NOTES (textarea grande)    │ GENERATED ITEMS (live)   │
-  │  Linhas livres +           │  Tabs: Actions | Issues  │
-  │  marcadores:               │         | Decisions      │
-  │   [action @Joey] ...       │  Cards com origem da     │
-  │   [action] ...             │  linha + remover/editar  │
-  │   [issue] ...              │                          │
-  │   [decision] ...           │                          │
-  └────────────────────────────┴──────────────────────────┘
-                          [End meeting]
-                                ↓
-                       Review dialog (lista todos os itens
-                       extraídos, permite editar/remover/
-                       atribuir assignee em actions sem dono)
-                                ↓
-                       Meeting marcada como Completed
-                       Itens publicados no store global
-```
-
-## Status da reunião
-
-- `Scheduled` — criada para o futuro (opcional, próxima fase)
-- `Live` — em andamento, edição livre das notas
-- `Completed` — finalizada, notas e itens congelados
-
-> Mudou de `In progress` → **Live** para ficar mais humano e alinhado a "meeting system".
-
-## Listagem `/meetings`
-
-- Header: título + botão **New meeting**
-- Stat strip: Total · Scheduled · Live · Completed
-- Filtros: tabs por status (All / Scheduled / Live / Completed) + busca
-- Lista com: título, data, status badge, attendees (avatar stack), contagem de itens gerados
-- Clique → detalhe
-
-## Detalhe `/meetings/$meetingId`
-
-**Header**: título editável inline, data, status badge, attendees (avatar stack + add), botão **End meeting** (só em Live).
-
-**Esquerda — Notes**
-- Textarea full-height, fonte mono leve.
-- Hint discreto com a legenda dos marcadores aceitos:
-  - `[action] texto` — action sem responsável
-  - `[action @Nome] texto` — action com assignee
-  - `[issue] texto`
-  - `[decision] texto`
-
-**Direita — Generated Items**
-- Tabs: Actions / Issues / Decisions com contadores.
-- Cada item: texto, badge de assignee (ou **Unassigned** quando vazio), nº da linha de origem, botão remover.
-- Atualiza em tempo real (debounce 200ms).
-
-**End meeting**
-- Abre `Dialog` de revisão com as 3 listas editáveis.
-- Em Actions sem assignee, mostra select inline para atribuir antes de finalizar (não obrigatório — pode finalizar como Unassigned).
-- Confirmar → status Completed, itens vão para o store global, redireciona para `/meetings`.
-
-## Modelo de dados (store local)
-
-`src/lib/meetings/store.ts` — store simples com `localStorage` + listeners. Chave: `mango.meetings.{projectId}`.
+Estender o store de meetings (`src/lib/meetings/store.ts`) sem quebrar o existente:
 
 ```ts
-type ItemKind = "action" | "issue" | "decision";
-type GeneratedItem = {
-  id: string;
-  kind: ItemKind;
-  text: string;
-  assignee?: string;   // opcional em actions
-  sourceLine: number;
-};
-type Meeting = {
+type ActionStatus = "Open" | "In Progress" | "Done";
+type ActionPriority = "Low" | "Medium" | "High";
+type ActionOrigin = "meeting" | "manual";
+
+type ActionItem = {
   id: string;
   projectId: string;
-  title: string;
-  date: string;        // ISO
-  attendees: string[];
-  notes: string;
-  items: GeneratedItem[];
-  status: "Scheduled" | "Live" | "Completed";
+  text: string;
+  assignee?: string;
+  status: ActionStatus;
+  priority: ActionPriority;       // default "Medium"
+  dueDate?: string;               // ISO
+  origin: ActionOrigin;
+  meetingId?: string;             // quando origin = "meeting"
+  meetingTitle?: string;
+  sourceLine?: number;
   createdAt: string;
   completedAt?: string;
 };
 ```
 
-API:
-- `listMeetings(projectId)`, `getMeeting(id)`
-- `createMeeting({projectId, title, date, attendees})` → status Live
-- `updateMeetingNotes(id, notes)` → re-roda parser
-- `updateItem(id, itemId, patch)` / `removeItem(id, itemId)`
-- `endMeeting(id)` → Completed + `publishItems(projectId, items)`
+Persistência: `localStorage` em `mango.actionItems.{projectId}`. Lista é a verdade única lida pela tela. `usePublishedItems("action")` continua existindo para compatibilidade com Issues/Decisions, mas a tela Action Items lê do novo store.
 
-`publishItems` grava em três stores irmãs (`actionItems`, `issues`, `decisions`) por projeto para as abas placeholder consumirem depois.
+### Sincronização com Meetings
 
-Hooks `useMeetings(projectId)` e `useMeeting(id)` com `useSyncExternalStore`.
+Em `endMeeting`, para cada item `kind === "action"`:
+- Upsert por `id` estável do parser:
+  - Existe (mesma meeting + mesmo id): atualiza `text`, `assignee` (se vazio), `meetingTitle`, mantém `status/priority/dueDate`.
+  - Novo: insere com `status: "Open"`, `priority: "Medium"`, `origin: "meeting"`.
+- Items manuais nunca são tocados.
+- Histórico preservado mesmo se a meeting for removida (badge "Meeting removed" no fallback).
 
-## Parser de marcadores
+Seed (`src/lib/meetings/seed.ts`): após o seed atual, popular ActionItems variados — alguns Done, alguns Overdue, alguns Due today, alguns In Progress, com mix de origin Meeting e Manual.
 
-Regex por linha, case-insensitive, tolerante a espaços. **Assignee é opcional em actions.**
+## API do store
 
-- `^\s*\[action(?:\s+@([^\]]+))?\]\s*(.+)$` → action (grupo 1 = assignee opcional, grupo 2 = texto)
-- `^\s*\[issue\]\s*(.+)$`
-- `^\s*\[decision\]\s*(.+)$`
+```ts
+useActionItems(projectId): ActionItem[]
+createActionItem(projectId, { text, assignee?, dueDate?, priority? })
+updateActionItem(projectId, id, patch)   // status, assignee, dueDate, priority, text
+deleteActionItem(projectId, id)
+```
 
-Re-parse completo a cada edição. IDs estáveis: hash `kind|sourceLine|text` para preservar edições do usuário entre re-parses.
+`updateActionItem` define `completedAt` automaticamente quando `status` vira `Done` e limpa quando volta a Open/In Progress.
 
-## Arquivos
+## UI — `src/routes/_app.projects.$projectId.action-items.tsx`
 
-**Novos**
-- `src/lib/meetings/store.ts`
-- `src/components/meetings/NewMeetingDialog.tsx`
-- `src/components/meetings/MeetingsList.tsx`
-- `src/components/meetings/MeetingDetail.tsx`
-- `src/components/meetings/EndMeetingDialog.tsx`
-- `src/components/meetings/ItemCard.tsx`
-- `src/routes/_app.projects.$projectId.meetings.$meetingId.tsx`
+Lista única + filtros.
 
-**Editados**
-- `src/routes/_app.projects.$projectId.meetings.tsx` — vira a listagem real
+### Header
+- Título "Action Items" + subtítulo curto.
+- Botão `+ New Action Item` discreto à direita (variant outline + ícone Plus).
 
-## Validação visual
+### Stats compactas (4 cards)
+- Open · In Progress · Overdue · Done
+- Clicar aplica o filtro correspondente.
 
-1. `/meetings` mostra lista vazia + **New meeting**.
-2. Criar meeting → abre detalhe com status **Live** e cursor nas notas.
-3. `[decision] Approve bid #3` → card em Decisions instantâneo.
-4. `[action] Update easement schedule` → action **Unassigned**.
-5. `[action @Joey Cox] Send schedule` → action com assignee Joey Cox.
-6. **End meeting** → dialog de revisão permite atribuir as actions sem dono; confirmar volta à lista com status **Completed** e contagem de itens correta.
-7. Reload mantém tudo (localStorage).
+### Tabs rápidas
+`All` · `My Tasks` · `Overdue` · `Completed`
+("My Tasks" usa string fixa "Me" por enquanto, com TODO para integrar auth.)
 
-## Fora de escopo
+### Filtros (linha)
+Status (multi) · Priority (multi) · Assignee (select) · Origin (Meeting / Manual) · Busca textual.
 
-- IA / NLP / transcrição
-- Telas reais de Action Items / Issues / Decisions consumindo o store (próxima etapa)
-- Edição rica (markdown, autocomplete de mentions)
-- Notificações, recorrência, integrações
+### Linha da tabela
+- **Status pill clicável** → abre mini menu (Popover) com 3 opções: Open · In Progress · Done. Sem toggle binário no clique principal.
+- Texto do action (truncado, tooltip full).
+- Assignee (avatar/inicial + nome, editável inline).
+- Due date (DatePicker inline) com 3 estados visuais sutis:
+  - Overdue: `text-destructive` + ícone alerta
+  - Due today: `text-amber-700` + tag pequena "Today"
+  - Próximos: neutro
+- Priority (Select pequeno colorido).
+- Origin badge discreto:
+  - `Meeting` (link → `/projects/$projectId/meetings/$meetingId`)
+  - `Manual`
+- Menu `…` com Edit / Delete.
+
+### Ordenação default
+1. **Overdue primeiro** (status ≠ Done && dueDate < hoje)
+2. Open / In Progress antes de Done
+3. dueDate ascendente (sem due → final do grupo)
+4. priority desc (High → Low)
+
+### Empty state
+Ilustração simples + texto "No action items yet" + CTA `+ New Action Item`.
+Bloco de exemplo visual mostrando o parser em ação:
+
+```
+Pro tip — items also appear here when you publish meetings with markers:
+
+  [action @John] Send revised schedule by Friday
+  [action] Review punch list
+```
+
+Renderizado como bloco mono com syntax highlight leve (mesmas cores dos tags na tela de meetings).
+
+### New / Edit dialog
+Title · Assignee (input livre, sugere attendees recentes) · Due date (Popover + Calendar shadcn com `pointer-events-auto`) · Priority (Select) · Status (Select; default Open).
+Sem Notes nesta fase.
+
+## Componentes novos
+
+- `src/components/action-items/ActionItemRow.tsx`
+- `src/components/action-items/ActionItemDialog.tsx` (create + edit)
+- `src/components/action-items/ActionFilters.tsx`
+- `src/components/action-items/PriorityBadge.tsx`
+- `src/components/action-items/StatusMenu.tsx` (pill + popover de 3 estados)
+
+## Detalhes técnicos
+
+- Cores via tokens semânticos (`src/styles.css`); Overdue usa `text-destructive`, Due today usa `text-amber-700`/`bg-amber-500/10`, Priority High `bg-destructive/10 text-destructive`, Medium âmbar, Low `bg-muted`.
+- Datas com `date-fns`; helper `isOverdue` / `isDueToday` no próprio módulo.
+- DatePicker shadcn (Popover + Calendar com `pointer-events-auto`).
+- Reatividade via `useSyncExternalStore` já existente.
+- Issues/Decisions permanecem com `usePublishedItems` (sem mudanças).
+
+## Arquivos a alterar/criar
+
+- editar `src/lib/meetings/store.ts` (tipos, store actionItems, hooks, mutações, sync em `endMeeting`)
+- editar `src/lib/meetings/seed.ts` (popular actionItems realistas com mix de estados)
+- substituir `src/routes/_app.projects.$projectId.action-items.tsx`
+- criar `src/components/action-items/*` (5 componentes)
+
+## Fora de escopo (Fase 1)
+
+Notes/Comments · Subtasks · Labels · Dependencies · Drag & drop · Bulk actions · "My Tasks" com auth real.
