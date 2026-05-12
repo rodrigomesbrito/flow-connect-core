@@ -72,6 +72,7 @@ export function ActionItemDialog({
     item?.priority ?? "Medium",
   );
   const [status, setStatus] = useState<ActionStatus>(item?.status ?? "Open");
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   // Reset state when opening with a different item
   const reset = (next?: ActionItem | null) => {
