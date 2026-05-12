@@ -68,10 +68,10 @@ export function WorkspaceMenu({
         {/* Header */}
         <div className="flex items-center gap-3 p-2">
           <span
-            className="size-10 rounded-md grid place-items-center text-white text-sm font-semibold shrink-0"
+            className="size-10 rounded-md grid place-items-center text-white shrink-0"
             style={{ backgroundColor: current.color }}
           >
-            {initials}
+            <FolderKanban className="size-5" />
           </span>
           <div className="min-w-0">
             <div className="text-sm font-semibold truncate">{current.name}</div>
