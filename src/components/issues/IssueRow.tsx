@@ -5,10 +5,9 @@ import {
   CheckSquare,
   Copy,
   ExternalLink,
-  MoreHorizontal,
   Pencil,
+  Shield,
   Trash2,
-  User,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -20,14 +19,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -37,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { RowMenu } from "@/components/data";
 import { cn } from "@/lib/utils";
 import {
   deleteIssue,
@@ -57,6 +52,25 @@ const initials = (name?: string) =>
     .map((p) => p[0]?.toUpperCase())
     .join("") || "?";
 
+/** Deterministic ring color derived from owner name. */
+const ringColor = (name: string) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++)
+    hash = (hash << 5) - hash + name.charCodeAt(i);
+  const palette = [
+    "bg-blue-100 text-blue-700 ring-blue-200",
+    "bg-emerald-100 text-emerald-700 ring-emerald-200",
+    "bg-violet-100 text-violet-700 ring-violet-200",
+    "bg-amber-100 text-amber-700 ring-amber-200",
+    "bg-rose-100 text-rose-700 ring-rose-200",
+    "bg-cyan-100 text-cyan-700 ring-cyan-200",
+  ];
+  return palette[Math.abs(hash) % palette.length];
+};
+
+export const ISSUES_GRID =
+  "grid-cols-[110px_1fr_120px_110px_120px_90px_32px]";
+
 export function IssueRow({
   issue,
   projectId,
@@ -69,16 +83,18 @@ export function IssueRow({
   linkedAction?: ActionItem;
 }) {
   const resolved = issue.status === "Resolved";
-  const fromMeeting = issue.origin === "meeting" && issue.meetingId;
+  const fromMeeting = issue.origin === "meeting" && !!issue.meetingId;
   const meetingSearch = issue.sourceLine ? { line: issue.sourceLine } : {};
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
     <div
       className={cn(
-        "group grid grid-cols-[110px_1fr_auto_auto_auto_auto_32px] items-center gap-3 border-b border-border px-4 py-2.5 hover:bg-muted/30 transition-colors",
+        "group grid items-center gap-3 px-4 py-3 transition-colors",
+        ISSUES_GRID,
+        "hover:bg-muted/40",
         resolved && "opacity-60",
-        issue.blocking && !resolved && "bg-destructive/[0.03]",
+        issue.blocking && !resolved && "bg-rose-50/30 dark:bg-rose-950/10",
       )}
     >
       {/* Status */}
@@ -87,7 +103,7 @@ export function IssueRow({
         onChange={(next) => updateIssue(projectId, issue.id, { status: next })}
       />
 
-      {/* Text */}
+      {/* Issue text + blocking marker */}
       <Tooltip delayDuration={400}>
         <TooltipTrigger asChild>
           {fromMeeting ? (
@@ -96,30 +112,31 @@ export function IssueRow({
               params={{ projectId, meetingId: issue.meetingId! }}
               search={meetingSearch}
               className={cn(
-                "min-w-0 truncate text-sm flex items-center gap-1.5 hover:text-primary transition-colors",
-                resolved && "line-through",
+                "min-w-0 flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors",
+                resolved && "line-through text-muted-foreground font-normal",
               )}
             >
               {issue.blocking && !resolved && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Ban className="h-3.5 w-3.5 text-destructive shrink-0" />
-                  </TooltipTrigger>
-                  <TooltipContent>Blocking</TooltipContent>
-                </Tooltip>
+                <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-tight bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300 shrink-0">
+                  <Ban className="h-2.5 w-2.5" />
+                  Block
+                </span>
               )}
               <span className="truncate">{issue.text}</span>
-              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-60 shrink-0" />
+              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50 shrink-0" />
             </Link>
           ) : (
             <div
               className={cn(
-                "min-w-0 truncate text-sm flex items-center gap-1.5 cursor-default",
-                resolved && "line-through",
+                "min-w-0 flex items-center gap-2 text-sm font-medium text-foreground cursor-default",
+                resolved && "line-through text-muted-foreground font-normal",
               )}
             >
               {issue.blocking && !resolved && (
-                <Ban className="h-3.5 w-3.5 text-destructive shrink-0" />
+                <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-tight bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300 shrink-0">
+                  <Ban className="h-2.5 w-2.5" />
+                  Block
+                </span>
               )}
               <span className="truncate">{issue.text}</span>
             </div>
@@ -144,19 +161,23 @@ export function IssueRow({
       </Tooltip>
 
       {/* Owner */}
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-[110px]">
+      <div className="flex items-center gap-2 min-w-0">
         {issue.owner ? (
           <>
-            <Avatar className="h-5 w-5">
-              <AvatarFallback className="text-[10px]">
-                {initials(issue.owner)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="truncate max-w-[100px]">{issue.owner}</span>
+            <span
+              className={cn(
+                "h-6 w-6 rounded-full ring-1 flex items-center justify-center text-[10px] font-semibold shrink-0",
+                ringColor(issue.owner),
+              )}
+            >
+              {initials(issue.owner)}
+            </span>
+            <span className="text-xs text-foreground truncate">
+              {issue.owner}
+            </span>
           </>
         ) : (
-          <span className="inline-flex items-center gap-1 italic">
-            <User className="h-3 w-3" />
+          <span className="text-xs italic text-muted-foreground">
             Unassigned
           </span>
         )}
@@ -169,9 +190,9 @@ export function IssueRow({
           updateIssue(projectId, issue.id, { severity: v as IssueSeverity })
         }
       >
-        <SelectTrigger className="h-7 w-[100px] border-transparent px-1.5 hover:border-border">
+        <SelectTrigger className="h-7 w-full justify-start border-transparent bg-transparent px-1.5 hover:bg-muted/60 hover:border-border [&_svg]:opacity-0 group-hover:[&_svg]:opacity-50">
           <SelectValue asChild>
-            <SeverityBadge severity={issue.severity} showIcon />
+            <SeverityBadge severity={issue.severity} />
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
@@ -182,24 +203,24 @@ export function IssueRow({
         </SelectContent>
       </Select>
 
-      {/* Linked action */}
-      <div className="text-[11px] min-w-[100px]">
+      {/* Mitigation */}
+      <div className="text-[11px] min-w-0">
         {linkedAction ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
                 to="/projects/$projectId/action-items"
                 params={{ projectId }}
-                className="inline-flex items-center gap-1 rounded border border-border bg-primary/5 px-1.5 py-0.5 text-primary hover:bg-primary/10 transition-colors max-w-[140px]"
+                className="inline-flex items-center gap-1 rounded border border-amber-200/80 bg-amber-50 px-1.5 py-0.5 text-amber-700 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 transition-colors max-w-full"
               >
-                <CheckSquare className="h-3 w-3 shrink-0" />
+                <Shield className="h-3 w-3 shrink-0" />
                 <span className="truncate">{linkedAction.text}</span>
               </Link>
             </TooltipTrigger>
             <TooltipContent>Mitigation: {linkedAction.text}</TooltipContent>
           </Tooltip>
         ) : (
-          <span className="text-muted-foreground italic">—</span>
+          <span className="text-muted-foreground/60">—</span>
         )}
       </div>
 
@@ -210,58 +231,56 @@ export function IssueRow({
             to="/projects/$projectId/meetings/$meetingId"
             params={{ projectId, meetingId: issue.meetingId! }}
             search={meetingSearch}
-            className="inline-flex items-center gap-1 rounded border border-border bg-muted/50 px-1.5 py-0.5 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+            className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
           >
             Meeting
             {issue.sourceLine && (
-              <span className="opacity-70">L{issue.sourceLine}</span>
+              <span className="opacity-60">·L{issue.sourceLine}</span>
             )}
           </Link>
         ) : (
-          <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
-            Manual
-          </span>
+          <span className="text-muted-foreground">Manual</span>
         )}
       </div>
 
-      {/* Menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 opacity-0 group-hover:opacity-100"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onEdit(issue)}>
-            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+      {/* Row menu */}
+      <RowMenu>
+        <DropdownMenuItem onClick={() => onEdit(issue)}>
+          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() =>
+            updateIssue(projectId, issue.id, { blocking: !issue.blocking })
+          }
+        >
+          <Ban className="mr-2 h-3.5 w-3.5" />
+          {issue.blocking ? "Unmark blocking" : "Mark as blocking"}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => duplicateIssue(projectId, issue.id)}>
+          <Copy className="mr-2 h-3.5 w-3.5" /> Duplicate
+        </DropdownMenuItem>
+        {linkedAction && (
+          <DropdownMenuItem asChild>
+            <Link
+              to="/projects/$projectId/action-items"
+              params={{ projectId }}
+              className="cursor-pointer"
+            >
+              <CheckSquare className="mr-2 h-3.5 w-3.5" /> View mitigation
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() =>
-              updateIssue(projectId, issue.id, { blocking: !issue.blocking })
-            }
-          >
-            <Ban className="mr-2 h-3.5 w-3.5" />
-            {issue.blocking ? "Unmark blocking" : "Mark as blocking"}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => duplicateIssue(projectId, issue.id)}>
-            <Copy className="mr-2 h-3.5 w-3.5" /> Duplicate
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onSelect={(e) => {
-              e.preventDefault();
-              setConfirmOpen(true);
-            }}
-          >
-            <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onSelect={(e) => {
+            e.preventDefault();
+            setConfirmOpen(true);
+          }}
+        >
+          <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+        </DropdownMenuItem>
+      </RowMenu>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
