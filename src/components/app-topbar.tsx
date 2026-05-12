@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getSession, signOut } from "@/lib/auth";
 
-export function AppTopbar() {
+export function AppTopbar({ showSidebarTrigger = true }: { showSidebarTrigger?: boolean }) {
   const navigate = useNavigate();
   const session = typeof window !== "undefined" ? getSession() : null;
   const initials = session?.name
@@ -26,7 +26,7 @@ export function AppTopbar() {
 
   return (
     <header className="h-12 flex items-center gap-2 px-3 border-b border-border bg-background sticky top-0 z-30">
-      <SidebarTrigger className="size-8" />
+      {showSidebarTrigger && <SidebarTrigger className="size-8" />}
 
       <div className="flex items-center gap-2 ml-1">
         <Link
