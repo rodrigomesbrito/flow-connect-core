@@ -58,6 +58,28 @@ function MeetingDetailPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const meeting = useMeeting(project.id, meetingId);
+  const allMeetings = useMeetings(project.id);
+  const actionItems = useActionItems(project.id);
+
+  const people: MentionPerson[] = useMemo(() => {
+    const inMeeting = new Set((meeting?.attendees ?? []).map((a) => a.trim()).filter(Boolean));
+    const others = new Set<string>();
+    allMeetings.forEach((m) =>
+      m.attendees.forEach((a) => {
+        const t = a.trim();
+        if (t && !inMeeting.has(t)) others.add(t);
+      }),
+    );
+    actionItems.forEach((it) => {
+      const t = it.assignee?.trim();
+      if (t && !inMeeting.has(t)) others.add(t);
+    });
+    const sorted = (s: Set<string>) => Array.from(s).sort((a, b) => a.localeCompare(b));
+    return [
+      ...sorted(inMeeting).map((name) => ({ name, inMeeting: true })),
+      ...sorted(others).map((name) => ({ name, inMeeting: false })),
+    ];
+  }, [meeting, allMeetings, actionItems]);
 
   const [notesDraft, setNotesDraft] = useState("");
   const [endOpen, setEndOpen] = useState(false);
