@@ -1,5 +1,11 @@
 import type { Meeting, PublishedItem, ItemKind } from "./store";
 import { parseNotes } from "./store";
+import {
+  seedActionItems,
+  type ActionItem,
+  type ActionPriority,
+  type ActionStatus,
+} from "@/lib/action-items/store";
 
 const KEY = (projectId: string) => `mango.meetings.${projectId}`;
 const PUB_KEY = (projectId: string, kind: ItemKind) => `mango.${kind}s.${projectId}`;
@@ -325,6 +331,83 @@ export const ensureSeeded = (projectId: string) => {
       localStorage.setItem(PUB_KEY(projectId, kind), JSON.stringify(published));
     }
   });
+
+  // Seed action items from completed/published meetings + a couple of manual entries.
+  // Vary status / priority / dueDate to make the Action Items screen feel realistic.
+  const STATUS_CYCLE: ActionStatus[] = ["Open", "In Progress", "Open", "Done", "Open"];
+  const PRIORITY_CYCLE: ActionPriority[] = ["High", "Medium", "Low", "Medium", "High"];
+  const DUE_OFFSETS = [-3, 0, 2, 7, -1, 5, 1, 14, -7, 3]; // negative = overdue, 0 = today
+
+  const isoDate = (offsetDays: number) => {
+    const d = new Date();
+    d.setHours(17, 0, 0, 0);
+    d.setDate(d.getDate() + offsetDays);
+    return d.toISOString();
+  };
+
+  const actionItems: ActionItem[] = [];
+  let cursor = 0;
+  toPublish.forEach((m) => {
+    const items = parseNotes(m.notes).filter((it) => it.kind === "action");
+    items.forEach((it) => {
+      const status = STATUS_CYCLE[cursor % STATUS_CYCLE.length];
+      const priority = PRIORITY_CYCLE[cursor % PRIORITY_CYCLE.length];
+      const due = DUE_OFFSETS[cursor % DUE_OFFSETS.length];
+      cursor++;
+      actionItems.push({
+        id: it.id,
+        projectId,
+        text: it.text,
+        assignee: it.assignee,
+        status,
+        priority,
+        dueDate: status === "Done" ? undefined : isoDate(due),
+        origin: "meeting",
+        meetingId: m.id,
+        meetingTitle: m.title,
+        sourceLine: it.sourceLine,
+        createdAt: m.completedAt ?? m.date,
+        completedAt: status === "Done" ? m.completedAt : undefined,
+      });
+    });
+  });
+
+  // A couple of manual items per project to demonstrate the manual origin.
+  const projectAttendees = Array.from(
+    new Set(raw.flatMap((m) => m.attendees)),
+  );
+  const pick = (i: number) => projectAttendees[i % projectAttendees.length];
+
+  const manualSeeds: Array<Omit<ActionItem, "id" | "projectId" | "origin" | "createdAt">> = [
+    {
+      text: "Review weekly safety report",
+      assignee: pick(0),
+      status: "Open",
+      priority: "Medium",
+      dueDate: isoDate(1),
+    },
+    {
+      text: "Update project risk register",
+      assignee: pick(1),
+      status: "In Progress",
+      priority: "High",
+      dueDate: isoDate(-2),
+    },
+  ];
+
+  manualSeeds.forEach((m, i) => {
+    actionItems.unshift({
+      id: `a_seed_manual_${projectId}_${i}`,
+      projectId,
+      origin: "manual",
+      createdAt: isoDate(-5),
+      ...m,
+    });
+  });
+
+  if (actionItems.length > 0) {
+    seedActionItems(projectId, actionItems);
+  }
 
   localStorage.setItem(SEED_FLAG(projectId), "1");
 };

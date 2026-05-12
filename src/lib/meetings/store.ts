@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { ensureSeeded } from "./seed";
+import { syncActionsFromMeeting } from "@/lib/action-items/store";
 
 export type ItemKind = "action" | "issue" | "decision";
 
@@ -241,6 +242,9 @@ export const endMeeting = (projectId: string, id: string) => {
       }));
     writePublished(projectId, kind, [...fresh, ...filtered]);
   });
+
+  // Sync action items into the operational store (upsert by stable id).
+  syncActionsFromMeeting(updated);
 };
 
 /* ---------------- hooks ---------------- */
