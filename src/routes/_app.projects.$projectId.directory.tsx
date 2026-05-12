@@ -234,7 +234,7 @@ function DirectoryPage() {
               </div>
             ) : (
               <ul className="divide-y divide-border">
-                {filtered.map((m) => (
+                {filtered.map((m: Member) => (
                   <li
                     key={m.email}
                     className="grid grid-cols-12 items-center px-4 py-3 hover:bg-muted/30 transition-colors"
