@@ -8,6 +8,7 @@ import {
   ExternalLink,
   MoreHorizontal,
   Pencil,
+  Shield,
   Trash2,
   User,
 } from "lucide-react";
@@ -228,7 +229,7 @@ export function ActionItemRow({
       </Select>
 
       {/* Origin */}
-      <div className="text-[11px]">
+      <div className="text-[11px] flex items-center gap-1">
         {fromMeeting ? (
           <Link
             to="/projects/$projectId/meetings/$meetingId"
@@ -245,6 +246,24 @@ export function ActionItemRow({
           <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
             Manual
           </span>
+        )}
+        {item.linkedIssueId && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to="/projects/$projectId/issues"
+                params={{ projectId }}
+                className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
+              >
+                <Shield className="h-3 w-3" />
+                Mitigation
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs">
+              Mitigation for issue:{" "}
+              {item.linkedIssueText ?? "(linked issue)"}
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
 

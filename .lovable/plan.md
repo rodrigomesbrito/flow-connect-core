@@ -1,83 +1,105 @@
-## Mention popover ao digitar `@` nas notas
+## Objetivo
 
-Adicionar um autocomplete leve no editor de notes da meeting: ao digitar `@` dentro de uma linha que começa com `[action`, abre um popover com pessoas do projeto, navegável por teclado e mouse.
+Tornar o link de uma "Mitigation Action" um fluxo natural — só aparece quando a issue é **blocking** — suportando vincular um Action Item existente ou criar um novo já vinculado, com relação bidirecional automática.
 
-## Fonte de pessoas
+## Mudanças propostas
 
-Construir a lista no detalhe da meeting (`_app.projects.$projectId.meetings.$meetingId.tsx`) e passar como prop ao `NotesPanel`:
+### 1. Modelo de dados (bidirecional)
 
-1. Attendees da meeting atual (prioridade visual — aparecem primeiro, com um sutil "in this meeting").
-2. Pessoas já vistas no projeto, deduplicadas por nome:
-   - attendees de todas as meetings (`useMeetings(projectId)`),
-   - assignees existentes em action items (`useActionItems(projectId)`).
-3. Resultado final: array `Person[] = { name, inMeeting: boolean }`, ordenado attendees-first, depois alfabético.
+**`src/lib/action-items/store.ts`** — adicionar a `ActionItem`:
+- `linkedIssueId?: string`
+- `linkedIssueText?: string` (snapshot para exibição sem cross-lookup)
 
-## Gatilho (regra restrita)
+Estender `createActionItem` e `updateActionItem` para aceitar/atualizar esses campos.
 
-O popover só abre quando o cursor está em uma linha cujo início (após whitespace e o opcional `executar `) é `[action`. Em qualquer outra linha o `@` é texto comum.
+**`src/lib/issues/store.ts`** — `linkedActionItemId` já existe, mantém. Links órfãos (action item deletado) caem silenciosamente para "—".
 
-Detecção a cada keystroke / seleção:
+### 2. UX no `IssueDialog` — bloco condicional
 
-```ts
-function getMentionContext(value: string, caret: number): {
-  query: string;
-  start: number; // index do '@'
-} | null
+Remover o campo fixo atual **"Linked mitigation action"**. Em seu lugar, render condicional ao toggle `blocking`:
+
+**Vazio + Blocking ON:**
+```
+Mitigation action
+┌──────────────────────────────────────┐
+│ No mitigation action linked          │
+│ [ Link existing ]   [ + Create ]     │
+└──────────────────────────────────────┘
 ```
 
-- Pega o trecho `lineStart..caret`.
-- Verifica `RE_ACTION_PREFIX = /^\s*(?:executar\s+)?\[action\b/i` no início da linha. Se não casar → null.
-- Procura o último `@` antes do caret na mesma linha; se não houver, ou se houver espaço/`]` entre ele e o caret → null.
-- Senão, retorna `{ start: posDo@, query: substring após @ }`.
+**Já vinculado:**
+```
+Mitigation action
+┌──────────────────────────────────────┐
+│ ✓ "Contact utility company"          │
+│      [ Change ]   [ Unlink ]         │
+└──────────────────────────────────────┘
+```
 
-Roda em `onChange`, `onKeyUp`, `onClick` do textarea (cobre digitação, navegação por setas e clique).
+- **Link existing**: `Popover` + `Command` (combobox com busca) listando os action items abertos do projeto. Selecionar seta `linkedActionItemId` no estado local.
+- **Create**: troca a região para mini-form inline (Textarea de texto + Input opcional de assignee + Select de prioridade). Botão "Create & link" apenas seta no estado local um marker `pendingNewAction = { text, assignee, priority }` — a criação real ocorre no submit (ver §3).
+- **Unlink**: limpa `linkedActionItemId` e `pendingNewAction` no estado.
 
-## UI
+Quando `blocking` for desligado durante a edição, **esconder a UI mas manter os valores no estado** (sem perda se o usuário religar).
 
-Popover ancorado abaixo do caret. Implementação simples, sem dependência nova:
+### 3. Persistência — ordem segura no submit
 
-- `mention` state no `NotesPanel`: `{ open, query, start, top, left, activeIndex }`.
-- Mede a posição do caret usando um div "mirror" invisível com mesma fonte/padding/largura do textarea (técnica padrão; já temos o overlay equivalente). Para MVP, usar uma versão enxuta: clonar `textarea.value.slice(0, caret)` em um `<div>` espelho, medir o último `<span>` (`getBoundingClientRect`) e converter para coordenadas relativas ao container do textarea, somando `-scrollTop/-scrollLeft`.
-- Popover: lista de até 6 pessoas filtradas por `query` (case-insensitive, `startsWith` primeiro, depois `includes`).
-- Cada item: avatar de iniciais + nome + (opcional) badge "in meeting" sutil.
-- Empty state: "No matching attendees".
+Pseudocódigo de `handleSubmit`:
 
-## Teclado
+```text
+1. Salvar issue primeiro:
+   - se isEdit:  updateIssue(...)  → issueId = issue.id
+   - se create:  issueId = createIssue(...).id
 
-Quando `mention.open === true`, interceptar no `onKeyDown` do textarea:
+2. Se blocking == false E havia link prévio:
+   - mostrar AlertDialog discreto:
+     "This issue is no longer blocking. Keep mitigation action linked?"
+     [ Unlink ]  [ Keep linked ]
+   - se Unlink: limpar linkedActionItemId no estado antes do passo 4
 
-- `ArrowDown` / `ArrowUp` → move `activeIndex` (com wrap).
-- `Enter` ou `Tab` → confirma a sugestão ativa.
-- `Escape` → fecha.
-- Espaço, `]` ou movimento que invalide o contexto → fecha.
+3. Se há pendingNewAction:
+   actionId = createActionItem(projectId, {
+     ...pendingNewAction,
+     linkedIssueId: issueId,
+     linkedIssueText: issueText,
+   }).id
+   linkedActionItemId = actionId
 
-`preventDefault()` apenas quando o popover está aberto e a tecla é uma das interceptadas.
+4. Reconciliar bidirecional:
+   - se linkedActionItemId !== prev:
+     - se prev existia: updateActionItem(prev, { linkedIssueId: undefined, linkedIssueText: undefined })
+     - se atual existe E não veio de pendingNewAction:
+         updateActionItem(atual, { linkedIssueId: issueId, linkedIssueText: issueText })
 
-## Inserir menção
+5. updateIssue(issueId, { linkedActionItemId })  (caso tenha mudado após o passo 1)
+6. Fechar dialog.
+```
 
-`insertMention(name)`:
-- Substitui `@<query>` por `@<name> ` (mantém o espaço final para fluidez).
-- Usa `setRangeText` no textarea para preservar undo nativo.
-- Chama o mesmo `onChange(textarea.value)` para disparar o debounce de `updateMeetingNotes` que já existe.
-- Fecha o popover e reposiciona o caret após a menção.
+A ordem garante que o issueId já existe antes de qualquer criação/patch de action item — evita o caso "create issue + create action" com referência indefinida.
 
-## Re-uso futuro (sem implementar agora)
+### 4. Action Items: badge "Mitigation for Issue"
 
-Manter o helper `getMentionContext` e o sub-componente `MentionPopover` exportáveis a partir de `src/components/meetings/MentionPopover.tsx`, para depois plugar no `ActionItemDialog` se quisermos a mesma experiência no campo Assignee.
+**`src/components/action-items/ActionItemRow.tsx`** — quando `item.linkedIssueId` presente, exibir badge pequeno ao lado do badge de origem:
 
-## Arquivos
+```
+[ Shield icon ] Mitigation for Issue
+```
 
-- editar `src/routes/_app.projects.$projectId.meetings.$meetingId.tsx`
-  - construir `people: Person[]` (attendees + outros), passar para `NotesPanel`.
-  - estender `NotesPanel` props com `people`.
-  - adicionar lógica de detecção, posicionamento, teclado e render do popover dentro do mesmo componente.
-- criar `src/components/meetings/MentionPopover.tsx`
-  - apresenta a lista (avatares, badge "in meeting", item ativo) e expõe `onSelect(name)`.
-  - sem lógica de detecção; recebe `people`, `query`, `activeIndex`, `style` (top/left).
+Com `Tooltip` mostrando o `linkedIssueText`. Clique leva à rota `/projects/$projectId/issues` (sem deep-link a uma issue específica por enquanto — não há rota de detalhe).
 
-## Fora de escopo (Fase 1)
+### 5. Página de Issues
 
-- Mention em texto livre (fora de `[action]`).
-- Mention em campos da tela Action Items.
-- Persistir menção como entidade estruturada (continua sendo só texto `@Nome` parseado pelo regex existente).
-- Suporte a teclado para navegar com `Home/End` dentro da popover.
+**`src/routes/_app.projects.$projectId.issues.tsx`** — sem mudanças funcionais; já passa `actionItems` ao dialog (agora também usado pelo combobox "Link existing").
+
+## Fora de escopo
+
+- Cascade delete bidirecional (deletar issue/action não toca o outro lado; link órfão exibido como "—").
+- Auto-resolver issue quando o action vira "Done".
+- Múltiplos action items por issue (mantém 1:1).
+- Rota de detalhe de issue.
+
+## Arquivos afetados
+
+- `src/lib/action-items/store.ts` — campos `linkedIssueId` / `linkedIssueText` em `ActionItem`, `createActionItem`, `updateActionItem`.
+- `src/components/issues/IssueDialog.tsx` — remover campo fixo, adicionar bloco condicional (Link existing / Create inline / Unlink), AlertDialog de confirmação ao salvar com Blocking OFF tendo link prévio, persistência bidirecional ordenada.
+- `src/components/action-items/ActionItemRow.tsx` — badge "Mitigation for Issue" com tooltip.
