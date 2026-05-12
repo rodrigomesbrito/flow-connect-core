@@ -83,10 +83,20 @@ export const seedDecisionMeta = (
   emit();
 };
 
+const metaCache = new Map<string, Record<string, DecisionMeta>>();
+
 const useMeta = (projectId: string): Record<string, DecisionMeta> => {
   return useSyncExternalStore(
     subscribe,
-    () => readMeta(projectId),
+    () => {
+      const fresh = readMeta(projectId);
+      const cached = metaCache.get(projectId);
+      if (cached && JSON.stringify(cached) === JSON.stringify(fresh)) {
+        return cached;
+      }
+      metaCache.set(projectId, fresh);
+      return fresh;
+    },
     () => ({}),
   );
 };

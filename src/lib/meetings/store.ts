@@ -277,10 +277,25 @@ export const useMeeting = (projectId: string, id: string): Meeting | undefined =
   return list.find((m) => m.id === id);
 };
 
+const publishedCache = new Map<string, PublishedItem[]>();
+
 export const usePublishedItems = (projectId: string, kind: ItemKind): PublishedItem[] => {
   return useSyncExternalStore(
     subscribe,
-    () => readPublished(projectId, kind),
+    () => {
+      const fresh = readPublished(projectId, kind);
+      const key = `${projectId}|${kind}`;
+      const cached = publishedCache.get(key);
+      if (
+        cached &&
+        cached.length === fresh.length &&
+        JSON.stringify(cached) === JSON.stringify(fresh)
+      ) {
+        return cached;
+      }
+      publishedCache.set(key, fresh);
+      return fresh;
+    },
     () => [],
   );
 };
