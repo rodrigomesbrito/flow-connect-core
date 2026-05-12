@@ -5,6 +5,7 @@ import {
   Users,
   Check,
   Plus,
+  FolderKanban,
 } from "lucide-react";
 import {
   DropdownMenu,
