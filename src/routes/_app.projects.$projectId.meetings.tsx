@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PlaceholderTab } from "@/components/projects/PlaceholderTab";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/projects/$projectId/meetings")({
-  component: () => <PlaceholderTab title="Meetings" description="Schedule, agendas, notes, and recordings." />,
+  component: () => <Outlet />,
 });

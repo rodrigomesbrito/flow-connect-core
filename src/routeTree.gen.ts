@@ -21,6 +21,8 @@ import { Route as AppProjectsProjectIdIssuesRouteImport } from './routes/_app.pr
 import { Route as AppProjectsProjectIdDirectoryRouteImport } from './routes/_app.projects.$projectId.directory'
 import { Route as AppProjectsProjectIdDecisionsRouteImport } from './routes/_app.projects.$projectId.decisions'
 import { Route as AppProjectsProjectIdActionItemsRouteImport } from './routes/_app.projects.$projectId.action-items'
+import { Route as AppProjectsProjectIdMeetingsIndexRouteImport } from './routes/_app.projects.$projectId.meetings.index'
+import { Route as AppProjectsProjectIdMeetingsMeetingIdRouteImport } from './routes/_app.projects.$projectId.meetings.$meetingId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -88,6 +90,18 @@ const AppProjectsProjectIdActionItemsRoute =
     path: '/action-items',
     getParentRoute: () => AppProjectsProjectIdRoute,
   } as any)
+const AppProjectsProjectIdMeetingsIndexRoute =
+  AppProjectsProjectIdMeetingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AppProjectsProjectIdMeetingsRoute,
+  } as any)
+const AppProjectsProjectIdMeetingsMeetingIdRoute =
+  AppProjectsProjectIdMeetingsMeetingIdRouteImport.update({
+    id: '/$meetingId',
+    path: '/$meetingId',
+    getParentRoute: () => AppProjectsProjectIdMeetingsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -98,9 +112,11 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/decisions': typeof AppProjectsProjectIdDecisionsRoute
   '/projects/$projectId/directory': typeof AppProjectsProjectIdDirectoryRoute
   '/projects/$projectId/issues': typeof AppProjectsProjectIdIssuesRoute
-  '/projects/$projectId/meetings': typeof AppProjectsProjectIdMeetingsRoute
+  '/projects/$projectId/meetings': typeof AppProjectsProjectIdMeetingsRouteWithChildren
   '/projects/$projectId/settings': typeof AppProjectsProjectIdSettingsRoute
   '/projects/$projectId/': typeof AppProjectsProjectIdIndexRoute
+  '/projects/$projectId/meetings/$meetingId': typeof AppProjectsProjectIdMeetingsMeetingIdRoute
+  '/projects/$projectId/meetings/': typeof AppProjectsProjectIdMeetingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,9 +126,10 @@ export interface FileRoutesByTo {
   '/projects/$projectId/decisions': typeof AppProjectsProjectIdDecisionsRoute
   '/projects/$projectId/directory': typeof AppProjectsProjectIdDirectoryRoute
   '/projects/$projectId/issues': typeof AppProjectsProjectIdIssuesRoute
-  '/projects/$projectId/meetings': typeof AppProjectsProjectIdMeetingsRoute
   '/projects/$projectId/settings': typeof AppProjectsProjectIdSettingsRoute
   '/projects/$projectId': typeof AppProjectsProjectIdIndexRoute
+  '/projects/$projectId/meetings/$meetingId': typeof AppProjectsProjectIdMeetingsMeetingIdRoute
+  '/projects/$projectId/meetings': typeof AppProjectsProjectIdMeetingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,9 +142,11 @@ export interface FileRoutesById {
   '/_app/projects/$projectId/decisions': typeof AppProjectsProjectIdDecisionsRoute
   '/_app/projects/$projectId/directory': typeof AppProjectsProjectIdDirectoryRoute
   '/_app/projects/$projectId/issues': typeof AppProjectsProjectIdIssuesRoute
-  '/_app/projects/$projectId/meetings': typeof AppProjectsProjectIdMeetingsRoute
+  '/_app/projects/$projectId/meetings': typeof AppProjectsProjectIdMeetingsRouteWithChildren
   '/_app/projects/$projectId/settings': typeof AppProjectsProjectIdSettingsRoute
   '/_app/projects/$projectId/': typeof AppProjectsProjectIdIndexRoute
+  '/_app/projects/$projectId/meetings/$meetingId': typeof AppProjectsProjectIdMeetingsMeetingIdRoute
+  '/_app/projects/$projectId/meetings/': typeof AppProjectsProjectIdMeetingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -143,6 +162,8 @@ export interface FileRouteTypes {
     | '/projects/$projectId/meetings'
     | '/projects/$projectId/settings'
     | '/projects/$projectId/'
+    | '/projects/$projectId/meetings/$meetingId'
+    | '/projects/$projectId/meetings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,9 +173,10 @@ export interface FileRouteTypes {
     | '/projects/$projectId/decisions'
     | '/projects/$projectId/directory'
     | '/projects/$projectId/issues'
-    | '/projects/$projectId/meetings'
     | '/projects/$projectId/settings'
     | '/projects/$projectId'
+    | '/projects/$projectId/meetings/$meetingId'
+    | '/projects/$projectId/meetings'
   id:
     | '__root__'
     | '/'
@@ -169,6 +191,8 @@ export interface FileRouteTypes {
     | '/_app/projects/$projectId/meetings'
     | '/_app/projects/$projectId/settings'
     | '/_app/projects/$projectId/'
+    | '/_app/projects/$projectId/meetings/$meetingId'
+    | '/_app/projects/$projectId/meetings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -263,15 +287,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjectsProjectIdActionItemsRouteImport
       parentRoute: typeof AppProjectsProjectIdRoute
     }
+    '/_app/projects/$projectId/meetings/': {
+      id: '/_app/projects/$projectId/meetings/'
+      path: '/'
+      fullPath: '/projects/$projectId/meetings/'
+      preLoaderRoute: typeof AppProjectsProjectIdMeetingsIndexRouteImport
+      parentRoute: typeof AppProjectsProjectIdMeetingsRoute
+    }
+    '/_app/projects/$projectId/meetings/$meetingId': {
+      id: '/_app/projects/$projectId/meetings/$meetingId'
+      path: '/$meetingId'
+      fullPath: '/projects/$projectId/meetings/$meetingId'
+      preLoaderRoute: typeof AppProjectsProjectIdMeetingsMeetingIdRouteImport
+      parentRoute: typeof AppProjectsProjectIdMeetingsRoute
+    }
   }
 }
+
+interface AppProjectsProjectIdMeetingsRouteChildren {
+  AppProjectsProjectIdMeetingsMeetingIdRoute: typeof AppProjectsProjectIdMeetingsMeetingIdRoute
+  AppProjectsProjectIdMeetingsIndexRoute: typeof AppProjectsProjectIdMeetingsIndexRoute
+}
+
+const AppProjectsProjectIdMeetingsRouteChildren: AppProjectsProjectIdMeetingsRouteChildren =
+  {
+    AppProjectsProjectIdMeetingsMeetingIdRoute:
+      AppProjectsProjectIdMeetingsMeetingIdRoute,
+    AppProjectsProjectIdMeetingsIndexRoute:
+      AppProjectsProjectIdMeetingsIndexRoute,
+  }
+
+const AppProjectsProjectIdMeetingsRouteWithChildren =
+  AppProjectsProjectIdMeetingsRoute._addFileChildren(
+    AppProjectsProjectIdMeetingsRouteChildren,
+  )
 
 interface AppProjectsProjectIdRouteChildren {
   AppProjectsProjectIdActionItemsRoute: typeof AppProjectsProjectIdActionItemsRoute
   AppProjectsProjectIdDecisionsRoute: typeof AppProjectsProjectIdDecisionsRoute
   AppProjectsProjectIdDirectoryRoute: typeof AppProjectsProjectIdDirectoryRoute
   AppProjectsProjectIdIssuesRoute: typeof AppProjectsProjectIdIssuesRoute
-  AppProjectsProjectIdMeetingsRoute: typeof AppProjectsProjectIdMeetingsRoute
+  AppProjectsProjectIdMeetingsRoute: typeof AppProjectsProjectIdMeetingsRouteWithChildren
   AppProjectsProjectIdSettingsRoute: typeof AppProjectsProjectIdSettingsRoute
   AppProjectsProjectIdIndexRoute: typeof AppProjectsProjectIdIndexRoute
 }
@@ -281,7 +337,8 @@ const AppProjectsProjectIdRouteChildren: AppProjectsProjectIdRouteChildren = {
   AppProjectsProjectIdDecisionsRoute: AppProjectsProjectIdDecisionsRoute,
   AppProjectsProjectIdDirectoryRoute: AppProjectsProjectIdDirectoryRoute,
   AppProjectsProjectIdIssuesRoute: AppProjectsProjectIdIssuesRoute,
-  AppProjectsProjectIdMeetingsRoute: AppProjectsProjectIdMeetingsRoute,
+  AppProjectsProjectIdMeetingsRoute:
+    AppProjectsProjectIdMeetingsRouteWithChildren,
   AppProjectsProjectIdSettingsRoute: AppProjectsProjectIdSettingsRoute,
   AppProjectsProjectIdIndexRoute: AppProjectsProjectIdIndexRoute,
 }
