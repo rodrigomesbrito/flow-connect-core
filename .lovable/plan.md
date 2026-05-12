@@ -1,127 +1,93 @@
-# Restruturação da Projects Page
+# Sidebar contextual do projeto + cor navy #08273F
 
 ## Objetivo
 
-Transformar `/projects` em um hub operacional moderno (Notion/Linear/ClickUp), com filtros, overview e grid de cards ricos — substituindo a lista atual mais simples.
+1. Criar um **sidebar próprio** que aparece dentro de `/projects/$projectId/*`, substituindo o `AppSidebar` global atual nessas rotas.
+2. Aplicar **#08273F** como cor base de qualquer sidebar do app (global e contextual), com tokens claros para texto, hover, borda e item ativo.
 
-## Estrutura final da tela
+## Estrutura final do sidebar do projeto
 
 ```text
-+--------------------------------------------------------------+
-|  Header: "Projects" + subtitle              [+ New Project]  |
-+--------------------------------------------------------------+
-|  [Search.............]  [Status v] [Phase v] [Owner v]       |
-+--------------------------------------------------------------+
-|  Overview cards (4):                                          |
-|  Active | Open Issues | Pending Tasks | Meetings This Week    |
-+--------------------------------------------------------------+
-|  Grid (3 col desktop / 2 tablet / 1 mobile):                  |
-|  +----------------+  +----------------+  +----------------+   |
-|  | Status   ⋮     |  |                |  |                |   |
-|  | Project Name   |  |                |  |                |   |
-|  | Owner • Phase  |  |                |  |                |   |
-|  | KPIs row       |  |                |  |                |   |
-|  | Progress 65%   |  |                |  |                |   |
-|  | Last update    |  |                |  |                |   |
-|  | Avatars +4     |  |                |  |                |   |
-|  +----------------+  +----------------+  +----------------+   |
-+--------------------------------------------------------------+
++---------------------------+
+|  [icon] Bryant Farms  v   |   <- Switcher de projetos (dropdown)
+|  Procurement Phase        |
++---------------------------+
+|  ← All projects           |
++---------------------------+
+|  PROJECT                  |
+|  • Dashboard              |
+|  • Directory              |
+|  • Meetings               |
+|  • Action Items     12    |
+|  • Decisions              |
+|  • Issues            4    |
+|  • Settings               |
++---------------------------+
 ```
 
-## Etapas
+- **Topo — Project Switcher**: badge colorido do projeto + nome + chevron. Dropdown lista todos os projetos do mock; clicar troca a rota mantendo a sub-página atual quando possível (fallback para `/projects/$projectId`). Linha secundária mostra a `phase`.
+- **Voltar**: link discreto `← All projects` para `/projects`.
+- **Menu PROJECT (padrão completo)**: Dashboard, Directory, Meetings, Action Items, Decisions, Issues, Settings. Cada item tem ícone (`LayoutDashboard`, `Users`, `CalendarClock`, `CheckSquare`, `Gavel`, `AlertTriangle`, `Settings`). Badges de contagem em Action Items (`pendingTasks`) e Issues (`openIssues`) vindos do mock.
+- **Active state**: usar `useRouterState` + `isActive` igual ao `AppSidebar` atual.
+- **Collapsible**: `collapsible="icon"` (mesmo padrão do app).
 
-### 1. Estender o mock (`src/lib/mock/projects.ts`)
+## Paleta navy aplicada aos tokens de sidebar
 
-Adicionar campos por projeto e expandir para ~9 projetos para a grid não parecer vazia:
-- `phase` ampliado para enum: `Procurement | Design | Construction | Closeout | Planning | Discovery | Execution | Initiation`
-- `ownerOrg`: `City of Charlotte | Private | State | Federal`
-- `pendingTasks`, `meetingsThisWeek`
-- `lastUpdated` (string relativa: "2 hours ago")
-- `participants`: array de até 6 avatares (`{ name, initials }`)
-- `progress` (já existe)
+Atualizar `src/styles.css` (`:root` e `.dark`) — afeta tanto o `AppSidebar` global quanto o novo:
 
-### 2. Header da página
+- `--sidebar`: #08273F (≈ `oklch(0.27 0.04 240)`)
+- `--sidebar-foreground`: branco levemente azulado (`oklch(0.95 0.01 240)`)
+- `--sidebar-accent`: hover sutil sobre o navy (`oklch(0.33 0.05 240)`)
+- `--sidebar-accent-foreground`: branco
+- `--sidebar-border`: branco translúcido (`oklch(1 0 0 / 8%)`)
+- `--sidebar-ring`: o azul primário existente
+- `--sidebar-primary`: mantém azul primário; `--sidebar-primary-foreground` mantém branco
 
-- Título `Projects` + subtítulo `Manage and track all active projects`
-- Botão primário `+ New Project` (apenas visual nesta fase)
+No dark mode os valores ficam praticamente iguais (já é navy escuro), só ajustamos para garantir o tom exato.
 
-### 3. Search + Filtros
+Resultado: badges de contagem, itens ativos e separadores ficam legíveis sobre o navy, sem precisar mudar componentes individuais.
 
-Componente `ProjectsToolbar` com:
-- Input de busca (`Search projects...`) com ícone de lupa, filtra por nome em tempo real
-- 3 dropdowns shadcn `Select`:
-  - **Status**: All, Active, Planning, On Hold, Completed
-  - **Phase**: All, Procurement, Design, Construction, Closeout
-  - **Owner**: All Owners, City of Charlotte, Private, State, Federal
-- Estado controlado via `useState` local
-- Reset automático: filtros aplicam combinados (AND)
+## Rotas filhas
 
-### 4. Overview Cards
+Criar layout + páginas placeholder mínimas para que o menu funcione hoje:
 
-Componente `ProjectsOverview` com 4 cards calculados a partir do mock filtrado:
-- Active Projects (count de status=Active)
-- Open Issues (soma de `openIssues`)
-- Pending Tasks (soma de `pendingTasks`)
-- Meetings This Week (soma de `meetingsThisWeek`)
+- `src/routes/_app.projects.$projectId.tsx` vira **layout** (mantém dados do projeto via loader, renderiza `<ProjectSidebar>` + `<Outlet />`).
+- `src/routes/_app.projects.$projectId.index.tsx` → atual conteúdo do dashboard.
+- `src/routes/_app.projects.$projectId.directory.tsx`
+- `src/routes/_app.projects.$projectId.meetings.tsx`
+- `src/routes/_app.projects.$projectId.action-items.tsx`
+- `src/routes/_app.projects.$projectId.decisions.tsx`
+- `src/routes/_app.projects.$projectId.issues.tsx`
+- `src/routes/_app.projects.$projectId.settings.tsx`
 
-Cada card tem ícone colorido em badge suave (info/destructive/success/warning), número grande e label.
+Cada placeholder = header simples (`<h1>` + descrição curta) — o conteúdo real entra nas próximas etapas. Sem isso o sidebar ficaria com links quebrados.
 
-### 5. Card de Projeto (`ProjectCard`)
+## Orquestração do layout
 
-Layout interno:
+`src/routes/_app.tsx` hoje esconde o sidebar global em `/projects`. Atualizar para:
 
-**Topo** — linha com `StatusBadge` à esquerda + menu `⋮` (DropdownMenu shadcn) à direita com Open Project / Edit / Archive (ações apenas visuais).
+- `/projects` → sem sidebar (igual hoje)
+- `/projects/$projectId/*` → renderiza **`ProjectSidebar`** (não o `AppSidebar` global)
+- demais rotas `_app/*` → `AppSidebar` global
 
-**Meio** —
-- Nome do projeto (font-semibold, text-base)
-- Linha secundária: `Owner • Phase` (text-xs muted)
-- Linha de KPIs em pílulas pequenas: `12 Tasks · 4 Issues · 2 Meetings`
-- Barra de progresso shadcn `Progress` com % à direita
+A escolha do sidebar fica numa pequena função pura baseada em `pathname`.
 
-**Rodapé** — separador + linha com:
-- `Last updated 2 hours ago` à esquerda
-- Stack de até 3 avatares + `+N` à direita (`AvatarStack` reutilizável)
+## Componentes novos
 
-Card inteiro envolto em `<Link>` para `/projects/$projectId`. Menu `⋮` usa `e.preventDefault()` para não navegar.
+- `src/components/projects/ProjectSidebar.tsx` — sidebar contextual completo
+- `src/components/projects/ProjectSwitcher.tsx` — dropdown shadcn (`DropdownMenu`) com a lista de projetos
 
-Hover: borda mais escura + sombra leve.
+## Fora de escopo
 
-### 6. Grid responsivo
+- Conteúdo real de Directory / Meetings / Action Items / Decisions / Issues / Settings (próxima etapa)
+- Persistência (continua mock)
+- Reorganizar o sidebar global (Inbox/Channels/DMs) — só recebe a nova cor
 
-`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` com gap-4. Empty state quando filtros não retornarem nada: ícone + "No projects match your filters" + botão "Clear filters".
+## Validação visual após implementar
 
-### 7. Sidebar
-
-Verificar que a sidebar atual já tem itens corretos. Para o contexto **dentro de um projeto** (Dashboard / Directory / Meetings / Action Items / Decisions / Issues / Settings), isso fica para a Etapa 3 — **não é escopo desta tela**, só registrar que o sidebar global hoje já tem Spaces/Channels/DMs e segue como está.
-
-## Componentes novos a criar
-
-- `src/components/projects/ProjectsToolbar.tsx` — search + 3 selects
-- `src/components/projects/ProjectsOverview.tsx` — 4 KPI cards
-- `src/components/projects/ProjectCard.tsx` — card individual
-- `src/components/projects/AvatarStack.tsx` — stack de avatares com `+N`
-- `src/components/status-badge.tsx` — badge reutilizável (Active/On Hold/Planning/Completed)
-
-## Reescrita
-
-- `src/routes/_app.projects.index.tsx` passa a orquestrar: estado de filtros → lista filtrada → overview + grid
-
-## O que NÃO entra agora
-
-- Persistência (continua mock até Etapa 5)
-- Funcionalidade real do `+ New Project`, Edit, Archive (apenas visuais)
-- Sidebar contextual de projeto (será na próxima etapa)
-
-## Validação visual
-
-Após implementar, conferir:
-1. Filtros combinam corretamente (status + phase + owner + search)
-2. Overview reage aos filtros aplicados
-3. Empty state aparece quando lista filtrada = 0
-4. Cards mantêm altura consistente independente do conteúdo
-5. Clique no card navega; clique no `⋮` não navega
-6. Responsivo em 1167px (atual) e abaixo
-
-## Próximo passo após aprovação
-
-Implementar tudo numa única passada (é uma tela só, componentes coesos), depois mostrar pra você validar antes de seguir para a Etapa 3.
+1. `/projects` continua sem sidebar.
+2. `/projects/bryant-farms` mostra o novo sidebar navy com Dashboard ativo.
+3. Trocar de projeto pelo switcher mantém a aba (ex.: estando em Issues, troca para outro projeto e cai em Issues dele).
+4. Badges de Action Items e Issues batem com o mock.
+5. Collapsed state mantém ícones legíveis sobre o navy.
+6. `AppSidebar` global (em `/inbox`, etc.) também aparece em navy, com texto legível.
