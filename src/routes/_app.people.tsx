@@ -152,13 +152,13 @@ function PeoplePage() {
       ) : (
         <TableShell>
           <TableHeader
-            gridClassName="grid-cols-12"
+            gridClassName="grid-cols-[4fr,3fr,2fr,2fr,1fr]"
             columns={[
-              <span key="n" className="col-span-4">Name</span>,
-              <span key="o" className="col-span-3">Organization</span>,
-              <span key="r" className="col-span-2">Role</span>,
-              <span key="p" className="col-span-2">Projects</span>,
-              <span key="a" className="col-span-1 text-right">Actions</span>,
+              "Name",
+              "Organization",
+              "Role",
+              "Projects",
+              <span key="a" className="text-right">Actions</span>,
             ]}
           />
 
@@ -182,6 +182,73 @@ function PeoplePage() {
     </div>
   );
 }
+
+function PersonRow({ person }: { person: WorkspacePerson }) {
+  return (
+    <li className="grid grid-cols-[4fr,3fr,2fr,2fr,1fr] gap-3 items-center px-4 py-3 hover:bg-muted/30 transition-colors group">
+      <div className="flex items-center gap-3 min-w-0">
+        <Avatar className="size-9 shrink-0">
+          <AvatarFallback
+            className="text-white text-[12px] font-semibold"
+            style={{ backgroundColor: person.color }}
+          >
+            {person.initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0">
+          <div className="text-sm font-medium truncate flex items-center gap-2">
+            {person.name}
+            {person.status === "Pending" && (
+              <Badge
+                variant="secondary"
+                className="text-[10px] px-1.5 py-0 h-4"
+              >
+                Pending
+              </Badge>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground truncate">
+            {person.title}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 min-w-0">
+        <span
+          className="size-2 rounded-full shrink-0"
+          style={{ backgroundColor: person.color }}
+        />
+        <span className="text-sm truncate">{person.org}</span>
+      </div>
+
+      <div>
+        <RoleBadge role={person.role} />
+      </div>
+
+      <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex items-center -space-x-1.5">
+          {person.projects.slice(0, 3).map((p) => (
+            <Link
+              key={p.id}
+              to="/projects/$projectId"
+              params={{ projectId: p.id }}
+              title={p.name}
+              className="size-5 rounded-md ring-2 ring-card shrink-0 hover:scale-110 transition-transform"
+              style={{ backgroundColor: p.color }}
+            />
+          ))}
+          {person.projects.length > 3 && (
+            <span className="size-5 rounded-md ring-2 ring-card bg-muted text-[9px] font-semibold grid place-items-center text-muted-foreground">
+              +{person.projects.length - 3}
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {person.projects.length}
+        </span>
+      </div>
+
+      <div className="flex justify-end items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
 
 function PersonRow({ person }: { person: WorkspacePerson }) {
   return (
