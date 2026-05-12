@@ -395,8 +395,7 @@ function QuickAction({
 }) {
   return (
     <Link
-      // @ts-expect-error - dynamic route literal narrowing
-      to={to}
+      to={to as "/projects/$projectId"}
       params={{ projectId }}
       className="group flex items-center gap-2 px-3 py-2 rounded-lg border border-border hover:border-foreground/20 hover:bg-muted/40 transition-all"
     >
