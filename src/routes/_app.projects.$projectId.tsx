@@ -176,7 +176,7 @@ function ProjectDashboard() {
           >
             <div className="flex items-center justify-between">
               <span
-                className={`size-8 rounded-lg grid place-items-center bg-${m.tone}/10 text-${m.tone}`}
+                className={`size-8 rounded-lg grid place-items-center ${m.iconClass}`}
               >
                 <m.icon className="size-4" />
               </span>
