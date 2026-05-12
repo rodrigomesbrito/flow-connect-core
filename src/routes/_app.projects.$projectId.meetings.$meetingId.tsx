@@ -235,15 +235,94 @@ function NotesPanel({
   onChange,
   readOnly,
   highlightLine,
+  people,
 }: {
   notes: string;
   onChange: (v: string) => void;
   readOnly: boolean;
   highlightLine?: number;
+  people: MentionPerson[];
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
   const [pulseLine, setPulseLine] = useState<number | undefined>(highlightLine);
+
+  // Mention popover state
+  const [mention, setMention] = useState<{
+    open: boolean;
+    query: string;
+    start: number;
+    top: number;
+    left: number;
+    activeIndex: number;
+  }>({ open: false, query: "", start: 0, top: 0, left: 0, activeIndex: 0 });
+
+  const suggestions = useMemo(
+    () => (mention.open ? filterPeople(people, mention.query) : []),
+    [mention.open, mention.query, people],
+  );
+
+  const closeMention = () =>
+    setMention((m) => (m.open ? { ...m, open: false } : m));
+
+  // Measure caret position using a hidden mirror div that mimics the textarea.
+  const measureCaret = (caret: number): { top: number; left: number } | null => {
+    const ta = textareaRef.current;
+    const mirror = mirrorRef.current;
+    if (!ta || !mirror) return null;
+    const before = ta.value.slice(0, caret);
+    mirror.textContent = before;
+    const marker = document.createElement("span");
+    marker.textContent = "\u200B";
+    mirror.appendChild(marker);
+    const rect = marker.getBoundingClientRect();
+    const taRect = ta.getBoundingClientRect();
+    mirror.removeChild(marker);
+    return {
+      top: rect.top - taRect.top + rect.height,
+      left: rect.left - taRect.left,
+    };
+  };
+
+  const refreshMention = () => {
+    const ta = textareaRef.current;
+    if (!ta || readOnly) return;
+    const ctx = getMentionContext(ta.value, ta.selectionStart);
+    if (!ctx) {
+      closeMention();
+      return;
+    }
+    const pos = measureCaret(ctx.start + 1 + ctx.query.length);
+    if (!pos) return;
+    setMention((m) => ({
+      open: true,
+      query: ctx.query,
+      start: ctx.start,
+      top: pos.top + 4,
+      left: Math.max(8, pos.left - 8),
+      activeIndex: m.open && m.start === ctx.start ? Math.min(m.activeIndex, 5) : 0,
+    }));
+  };
+
+  const insertMention = (name: string) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const replaceFrom = mention.start + 1; // after the '@'
+    const replaceTo = replaceFrom + mention.query.length;
+    ta.focus();
+    ta.setSelectionRange(replaceFrom, replaceTo);
+    // Use execCommand when available for native undo; fall back to setRangeText.
+    const inserted = `${name} `;
+    const ok =
+      typeof document.execCommand === "function" &&
+      document.execCommand("insertText", false, inserted);
+    if (!ok) {
+      ta.setRangeText(inserted, replaceFrom, replaceTo, "end");
+      onChange(ta.value);
+    }
+    closeMention();
+  };
 
   // When user lands with ?line=N, scroll the textarea to that line and
   // pulse-highlight it briefly. Re-runs whenever the param changes.
