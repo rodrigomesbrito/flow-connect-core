@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus, FolderKanban, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { projects } from "@/lib/mock/projects";
 
 export const Route = createFileRoute("/_app/projects")({
   head: () => ({
@@ -12,49 +13,6 @@ export const Route = createFileRoute("/_app/projects")({
   }),
   component: ProjectsPage,
 });
-
-const projects = [
-  {
-    id: "marketing",
-    name: "Marketing",
-    description: "Q2 campaign and launch coordination",
-    color: "oklch(0.62 0.24 350)",
-    status: "Active",
-    phase: "Execution",
-    openItems: 12,
-    members: 6,
-  },
-  {
-    id: "product",
-    name: "Product",
-    description: "Roadmap, backlog and release planning",
-    color: "oklch(0.62 0.18 245)",
-    status: "Active",
-    phase: "Discovery",
-    openItems: 8,
-    members: 9,
-  },
-  {
-    id: "qe",
-    name: "Quality Engineering",
-    description: "Testing strategy and regression coverage",
-    color: "oklch(0.65 0.18 152)",
-    status: "Active",
-    phase: "Initiation",
-    openItems: 4,
-    members: 3,
-  },
-  {
-    id: "design",
-    name: "Design System",
-    description: "Component library and design tokens",
-    color: "oklch(0.78 0.16 75)",
-    status: "On hold",
-    phase: "Planning",
-    openItems: 2,
-    members: 4,
-  },
-];
 
 function ProjectsPage() {
   return (
@@ -76,7 +34,8 @@ function ProjectsPage() {
         {projects.map((p) => (
           <Link
             key={p.id}
-            to="/projects"
+            to="/projects/$projectId"
+            params={{ projectId: p.id }}
             className="group relative bg-card border border-border rounded-xl p-5 hover:border-foreground/20 hover:shadow-sm transition-all"
           >
             <div className="flex items-start justify-between mb-4">
@@ -114,7 +73,7 @@ function ProjectsPage() {
 
             <div className="flex items-center justify-between mt-5 pt-4 border-t border-border text-xs text-muted-foreground">
               <span>
-                <span className="font-medium text-foreground">{p.openItems}</span> open items
+                <span className="font-medium text-foreground">{p.openActionItems}</span> open items
               </span>
               <span>
                 <span className="font-medium text-foreground">{p.members}</span> members
