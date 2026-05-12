@@ -54,6 +54,7 @@ const safeParse = <T,>(raw: string | null, fallback: T): T => {
 
 const readMeetings = (projectId: string): Meeting[] => {
   if (typeof window === "undefined") return [];
+  ensureSeeded(projectId);
   return safeParse<Meeting[]>(localStorage.getItem(KEY(projectId)), []);
 };
 
