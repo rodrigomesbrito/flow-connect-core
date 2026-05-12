@@ -419,13 +419,78 @@ function NotesPanel({
         <textarea
           ref={textareaRef}
           value={notes}
-          onChange={(e) => onChange(e.target.value)}
-          onScroll={handleScroll}
+          onChange={(e) => {
+            onChange(e.target.value);
+            // Defer so selectionStart reflects the new value.
+            queueMicrotask(refreshMention);
+          }}
+          onKeyDown={(e) => {
+            if (!mention.open || suggestions.length === 0) {
+              if (e.key === "Escape" && mention.open) closeMention();
+              return;
+            }
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setMention((m) => ({
+                ...m,
+                activeIndex: (m.activeIndex + 1) % suggestions.length,
+              }));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setMention((m) => ({
+                ...m,
+                activeIndex:
+                  (m.activeIndex - 1 + suggestions.length) % suggestions.length,
+              }));
+            } else if (e.key === "Enter" || e.key === "Tab") {
+              e.preventDefault();
+              insertMention(suggestions[mention.activeIndex].name);
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              closeMention();
+            }
+          }}
+          onKeyUp={(e) => {
+            // Arrow keys / clicks change caret without changing value.
+            if (
+              e.key === "ArrowLeft" ||
+              e.key === "ArrowRight" ||
+              e.key === "ArrowUp" ||
+              e.key === "ArrowDown" ||
+              e.key === "Home" ||
+              e.key === "End"
+            ) {
+              refreshMention();
+            }
+          }}
+          onClick={refreshMention}
+          onBlur={() => setTimeout(closeMention, 120)}
+          onScroll={() => {
+            handleScroll();
+            if (mention.open) closeMention();
+          }}
           readOnly={readOnly}
           placeholder={`Type freely. Mark items with brackets, e.g.:\n\n[decision] Approve bid package #3\n[issue] Utility relocation delay on STA 12+50\n[action @Joey Cox] Send updated schedule by Friday\n[action] Confirm easement filing window`}
           className="relative w-full h-full resize-none p-4 text-sm font-mono leading-relaxed bg-transparent outline-none placeholder:text-muted-foreground/60 caret-foreground text-transparent selection:bg-primary/30 selection:text-transparent"
           spellCheck={false}
         />
+        {/* Hidden mirror for caret position measurement */}
+        <div
+          ref={mirrorRef}
+          aria-hidden
+          className="absolute inset-0 invisible overflow-hidden p-4 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words pointer-events-none"
+        />
+        {mention.open && (
+          <MentionPopover
+            people={suggestions}
+            activeIndex={mention.activeIndex}
+            onSelect={insertMention}
+            onHover={(i) =>
+              setMention((m) => ({ ...m, activeIndex: i }))
+            }
+            style={{ top: mention.top, left: mention.left }}
+          />
+        )}
       </div>
     </section>
   );
