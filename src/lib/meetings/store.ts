@@ -170,7 +170,10 @@ export const updateMeetingNotes = (projectId: string, id: string, notes: string)
   writeMeetings(projectId, next);
   // Live sync: keep Action Items in sync as the user types in a Live meeting.
   const updated = next.find((m) => m.id === id);
-  if (updated) syncActionsFromMeeting(updated);
+  if (updated) {
+    syncActionsFromMeeting(updated);
+    syncIssuesFromMeeting(updated);
+  }
 };
 
 export const updateMeetingMeta = (
@@ -251,6 +254,7 @@ export const endMeeting = (projectId: string, id: string) => {
 
   // Sync action items into the operational store (upsert by stable id).
   syncActionsFromMeeting(updated);
+  syncIssuesFromMeeting(updated);
 };
 
 /* ---------------- hooks ---------------- */
