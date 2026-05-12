@@ -305,8 +305,8 @@ function SettingsPage() {
               />
               <div className="pt-2">
                 <Button variant="outline" asChild>
-                  <Link to={`/projects/${project.id}/directory` as string}>
-                    Manage people in Directory
+                  <Link to="/people">
+                    Manage people in workspace
                   </Link>
                 </Button>
               </div>
