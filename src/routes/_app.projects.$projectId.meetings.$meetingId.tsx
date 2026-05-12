@@ -259,10 +259,18 @@ function NotesPanel({
           className="absolute inset-0 overflow-hidden p-4 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words pointer-events-none text-foreground"
         >
           {lines.map((line, i) => {
+            const lineNum = i + 1;
+            const isPulse = pulseLine === lineNum;
             const kind = classifyLine(line);
             if (!kind) {
               return (
-                <div key={i} className="min-h-[1.625rem]">
+                <div
+                  key={i}
+                  className={cn(
+                    "min-h-[1.625rem] -mx-2 px-2 rounded-sm",
+                    isPulse && "bg-primary/15 ring-2 ring-primary animate-pulse",
+                  )}
+                >
                   {line || "\u200B"}
                 </div>
               );
@@ -280,6 +288,7 @@ function NotesPanel({
                 className={cn(
                   "relative min-h-[1.625rem] -mx-2 px-2 rounded-sm",
                   styles.bg,
+                  isPulse && "ring-2 ring-primary animate-pulse",
                 )}
               >
                 <span className={cn("absolute left-0 top-0 bottom-0 w-0.5 rounded-r", styles.bar)} />
