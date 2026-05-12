@@ -502,5 +502,91 @@ export const ensureSeeded = (projectId: string) => {
     seedDecisionMeta(projectId, decisionMeta);
   }
 
+  // Seed Issues from published meeting issues + a couple of manual entries.
+  const ISSUE_STATUS_CYCLE: IssueStatus[] = [
+    "Open",
+    "In Review",
+    "Open",
+    "Resolved",
+    "Open",
+    "In Review",
+  ];
+  const ISSUE_SEVERITY_CYCLE: IssueSeverity[] = [
+    "High",
+    "Critical",
+    "Medium",
+    "Low",
+    "High",
+    "Medium",
+  ];
+  const issues: Issue[] = [];
+  let iCursor = 0;
+  toPublish.forEach((m) => {
+    const items = parseNotes(m.notes).filter((it) => it.kind === "issue");
+    items.forEach((it) => {
+      const status = ISSUE_STATUS_CYCLE[iCursor % ISSUE_STATUS_CYCLE.length];
+      const severity = ISSUE_SEVERITY_CYCLE[iCursor % ISSUE_SEVERITY_CYCLE.length];
+      const owner = m.attendees[iCursor % Math.max(1, m.attendees.length)];
+      const blocking = severity === "Critical" || (severity === "High" && iCursor % 2 === 0);
+      iCursor++;
+      issues.push({
+        id: it.id,
+        projectId,
+        text: it.text,
+        status,
+        severity,
+        owner,
+        blocking: status === "Resolved" ? false : blocking,
+        origin: "meeting",
+        meetingId: m.id,
+        meetingTitle: m.title,
+        sourceLine: it.sourceLine,
+        createdAt: m.completedAt ?? m.date,
+        resolvedAt: status === "Resolved" ? m.completedAt : undefined,
+        resolutionNotes:
+          status === "Resolved" ? "Resolved in follow-up coordination." : undefined,
+      });
+    });
+  });
+
+  // A couple of manual issues per project for realism.
+  const allAttendees = Array.from(new Set(raw.flatMap((m) => m.attendees)));
+  const ownerPick = (i: number) =>
+    allAttendees[i % Math.max(1, allAttendees.length)];
+
+  const MANUAL_ISSUES: Record<string, Array<Omit<Issue, "id" | "projectId" | "origin" | "createdAt">>> = {
+    "bryant-farms": [
+      { text: "Subgrade failing density tests at STA 15+20", status: "In Review", severity: "High", owner: ownerPick(0), blocking: true },
+      { text: "Missing as-built drawings for existing storm line", status: "Open", severity: "Medium", owner: ownerPick(2), blocking: false },
+    ],
+    "northlake-bridge": [
+      { text: "Geotech borehole logs incomplete at Pier 3", status: "Open", severity: "High", owner: ownerPick(1), blocking: true },
+      { text: "Steel mill lead time exceeds schedule float", status: "In Review", severity: "Critical", owner: ownerPick(0), blocking: true },
+    ],
+    "airport-taxiway": [
+      { text: "FAA NOTAM revision pending — may shift Week 3", status: "Open", severity: "High", owner: ownerPick(0), blocking: false },
+    ],
+    "stormwater-iv": [
+      { text: "Erosion control violation noted in NPDES inspection", status: "In Review", severity: "Critical", owner: ownerPick(1), blocking: true },
+    ],
+    "westside-water": [
+      { text: "Pressure test failure at Cedar/9th tie-in", status: "Open", severity: "High", owner: ownerPick(0), blocking: true },
+    ],
+  };
+
+  (MANUAL_ISSUES[projectId] ?? []).forEach((m, i) => {
+    issues.unshift({
+      id: `is_seed_manual_${projectId}_${i}`,
+      projectId,
+      origin: "manual",
+      createdAt: isoDate(-3 - i),
+      ...m,
+    });
+  });
+
+  if (issues.length > 0) {
+    seedIssues(projectId, issues);
+  }
+
   localStorage.setItem(SEED_FLAG(projectId), "1");
 };
