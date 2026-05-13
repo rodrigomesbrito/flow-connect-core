@@ -3,16 +3,10 @@ import { useState } from "react";
 import {
   Settings as SettingsIcon,
   Bell,
-  Plug,
   Shield,
   Trash2,
   Save,
   Check,
-  Slack,
-  Mail,
-  Calendar,
-  FileText,
-  Github,
   AlertTriangle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
