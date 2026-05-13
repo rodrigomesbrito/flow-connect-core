@@ -215,23 +215,6 @@ function IssuesPage() {
         />
       </KpiRow>
 
-      {/* Tabs — underline style */}
-      <div className="border-b border-border mb-4">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-          <TabsList className="bg-transparent p-0 h-auto gap-6 rounded-none">
-            {(["all", "open", "blocking", "resolved"] as const).map((t) => (
-              <TabsTrigger
-                key={t}
-                value={t}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 pb-3 pt-0 text-sm font-medium text-muted-foreground data-[state=active]:text-foreground capitalize"
-              >
-                {t === "all" ? "All" : t}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
-
       <Toolbar onClear={clearFilters} hasActiveFilters={filtersActive}>
         <ToolbarSearch
           value={query}
