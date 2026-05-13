@@ -66,6 +66,17 @@ function deterministicTitle(name: string): string {
   return titles[Math.abs(h) % titles.length];
 }
 
+function deterministicRole(name: string, isOwner: boolean): Role {
+  if (isOwner) return "Owner";
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 13 + name.charCodeAt(i)) | 0;
+  const num = Math.abs(h) % 10;
+  // Distribute roles to ensure all states are visible: 10% Admin, 30% Viewer, 60% Member
+  if (num === 0 || num === 1) return "Admin";
+  if (num >= 2 && num <= 4) return "Viewer";
+  return "Member";
+}
+
 function buildPeople(): WorkspacePerson[] {
   const map = new Map<string, WorkspacePerson>();
 
@@ -102,7 +113,7 @@ function buildPeople(): WorkspacePerson[] {
         .toLowerCase()
         .split(" ")[0]}.com`,
       phone: `+1 (704) 555-${(100 + map.size * 17).toString().padStart(4, "0")}`,
-      role: isOwner ? "Owner" : "Member",
+      role: deterministicRole(person.name, isOwner),
       status: "Active",
       color,
       projects: [projRef],

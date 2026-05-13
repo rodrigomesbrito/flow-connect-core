@@ -5,6 +5,7 @@ import {
   CheckSquare,
   Gavel,
   AlertTriangle,
+  Settings,
 } from "lucide-react";
 import {
   Sidebar,
@@ -13,16 +14,23 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { WorkspaceMenu } from "./WorkspaceMenu";
 import type { Project } from "@/lib/mock/projects";
+import { useActionItemStats } from "@/lib/action-items/store";
+import { useIssueStats } from "@/lib/issues/store";
 import { cn } from "@/lib/utils";
 
 export function ProjectSidebar({ project }: { project: Project }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Live badge counts from stores
+  const actionStats = useActionItemStats(project.id);
+  const issueStats = useIssueStats(project.id);
 
   const base = `/projects/${project.id}`;
   const items = [
@@ -32,14 +40,14 @@ export function ProjectSidebar({ project }: { project: Project }) {
       title: "Action Items",
       url: `${base}/action-items`,
       icon: CheckSquare,
-      badge: project.pendingTasks,
+      badge: actionStats.open + actionStats.inProgress,
     },
     { title: "Decisions", url: `${base}/decisions`, icon: Gavel },
     {
       title: "Issues",
       url: `${base}/issues`,
       icon: AlertTriangle,
-      badge: project.openIssues,
+      badge: issueStats.open + issueStats.inReview,
       badgeVariant: "danger" as const,
     },
   ];
@@ -70,28 +78,23 @@ export function ProjectSidebar({ project }: { project: Project }) {
                   )}
                 >
                   <Link to={item.url as string}>
-                    {active && !collapsed && (
-                      <span
-                        aria-hidden
-                        className="absolute left-0 top-1/4 bottom-1/4 w-1 rounded-full bg-[oklch(0.75_0.16_240)]"
-                      />
-                    )}
                     <item.icon
                       className={cn(
-                        "size-[18px] shrink-0 transition-colors",
+                        "size-[15px] shrink-0 transition-colors mr-0.5",
                         active
-                          ? "text-[oklch(0.78_0.15_240)]"
-                          : "text-white/50 group-hover/menu-button:text-[oklch(0.78_0.15_240)]",
+                          ? "text-white"
+                          : "text-white/40 group-hover/menu-button:text-white/80",
                       )}
+                      strokeWidth={2}
                     />
                     <span className="truncate">{item.title}</span>
                     {item.badge && item.badge > 0 && !collapsed && (
                       <span
                         className={cn(
-                          "ml-auto inline-flex items-center justify-center min-w-[22px] h-[20px] px-2 text-[11px] font-bold rounded-full ring-1",
+                          "ml-auto inline-flex items-center justify-center min-w-[20px] h-[18px] px-1.5 text-[10px] font-bold rounded ring-1 ring-inset",
                           item.badgeVariant === "danger"
-                            ? "bg-rose-500/15 text-rose-300 ring-rose-400/30"
-                            : "bg-white/10 text-[oklch(0.82_0.13_240)] ring-white/20",
+                            ? "bg-rose-500/20 text-rose-300 ring-rose-500/30"
+                            : "bg-white/10 text-white/80 ring-white/20",
                         )}
                       >
                         {item.badge}
@@ -104,6 +107,36 @@ export function ProjectSidebar({ project }: { project: Project }) {
           })}
         </SidebarMenu>
       </SidebarContent>
+
+      <SidebarFooter className={cn("px-2 pb-3", collapsed && "px-1")}>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Settings"
+              className={cn(
+                "h-8 rounded-md px-2 py-1.5 text-[13px] font-medium transition-colors",
+                isActive(`${base}/settings`)
+                  ? "bg-white/10 text-white"
+                  : "text-white/60 hover:bg-white/5 hover:text-white",
+              )}
+            >
+              <Link to={`${base}/settings` as string}>
+                <Settings
+                  className={cn(
+                    "size-[15px] shrink-0 mr-0.5",
+                    isActive(`${base}/settings`)
+                      ? "text-white"
+                      : "text-white/40 group-hover/menu-button:text-white/80",
+                  )}
+                  strokeWidth={2}
+                />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

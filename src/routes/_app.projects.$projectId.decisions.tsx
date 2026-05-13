@@ -7,14 +7,20 @@ import {
   KpiStat,
   NoResults,
   PageHeader,
-  TableBody,
-  TableFooter,
-  TableHeader,
-  TableShell,
   Toolbar,
   ToolbarFilter,
   ToolbarSearch,
 } from "@/components/data";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   sortDecisions,
@@ -33,8 +39,7 @@ export const Route = createFileRoute("/_app/projects/$projectId/decisions")({
 
 type Tab = "all" | "proposed" | "approved" | "reverted";
 
-export const DECISIONS_GRID =
-  "grid-cols-[120px_1fr_auto_auto_auto_32px]";
+export const DECISIONS_GRID = ""; // Deprecated
 
 function DecisionsPage() {
   const { projectId } = Route.useParams();
@@ -105,6 +110,20 @@ function DecisionsPage() {
     }
     return sortDecisions(list);
   }, [decisions, tab, statusFilter, decisorFilter, meetingFilter, query]);
+
+  // Pagination logic
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filtered.length / pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [tab, statusFilter, decisorFilter, meetingFilter, query]);
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page]);
 
   const openEdit = (d: Decision) => {
     setEditing(d);
@@ -231,29 +250,66 @@ function DecisionsPage() {
           }
         />
       ) : filtered.length === 0 ? (
-        <TableShell>
+        <div className="bg-card border border-border/50 rounded-[14px] overflow-hidden">
           <NoResults message="No decisions match your filters." onClear={clearFilters} />
-        </TableShell>
+        </div>
       ) : (
-        <TableShell>
-          <TableHeader
-            gridClassName={DECISIONS_GRID}
-            columns={["Status", "Decision", "Decided by", "Date", "Source", ""]}
-          />
-          <TableBody>
-            {filtered.map((d) => (
-              <DecisionRow
-                key={d.id}
-                decision={d}
-                projectId={projectId}
-                onEdit={openEdit}
-              />
-            ))}
-          </TableBody>
-          <TableFooter>
-            <span>Showing {filtered.length} of {decisions.length}</span>
-          </TableFooter>
-        </TableShell>
+        <div className="bg-card border border-border/50 rounded-[14px] overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/40 hover:bg-muted/40">
+              <TableRow className="border-border/40 hover:bg-transparent">
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider pl-5 w-[130px]">Status</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Decision</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[160px]">Decided by</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[120px]">Date</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[200px]">Source</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-right pr-5 w-[60px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginated.map((d) => (
+                <DecisionRow
+                  key={d.id}
+                  decision={d}
+                  projectId={projectId}
+                  onEdit={openEdit}
+                />
+              ))}
+            </TableBody>
+          </Table>
+
+          {/* Pagination Footer */}
+          {filtered.length > pageSize && (
+            <div className="flex items-center justify-between px-5 py-3 border-t border-border/40 bg-muted/10">
+              <div className="text-[12px] text-muted-foreground">
+                Showing <span className="font-medium text-foreground">{(page - 1) * pageSize + 1}</span> to <span className="font-medium text-foreground">{Math.min(page * pageSize, filtered.length)}</span> of <span className="font-medium text-foreground">{filtered.length}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="h-8 w-8 p-0 border-border/60 hover:bg-muted/50 rounded-md"
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <div className="text-[12px] font-medium text-muted-foreground min-w-[3rem] text-center">
+                  {page} / {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="h-8 w-8 p-0 border-border/60 hover:bg-muted/50 rounded-md"
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       <DecisionDialog

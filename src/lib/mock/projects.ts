@@ -16,6 +16,13 @@ export type OwnerOrg =
 
 export type Person = { name: string; initials: string };
 
+export type FinancialData = {
+  contractOriginalValue: number;
+  totalPayAppApproved: number;
+  addendumValue: number;
+  totalProjectContract: number;
+};
+
 export type Project = {
   id: string;
   name: string;
@@ -25,17 +32,12 @@ export type Project = {
   phase: ProjectPhase;
   ownerOrg: OwnerOrg;
   owner: Person;
-  openActionItems: number;
-  openIssues: number;
-  recentDecisions: number;
-  upcomingMeetings: number;
-  pendingTasks: number;
-  meetingsThisWeek: number;
   members: number;
   participants: Person[];
   health: "On track" | "At risk" | "Off track";
   progress: number;
   lastUpdated: string;
+  financial: FinancialData;
 };
 
 const colorBlue = "oklch(0.62 0.18 250)";
@@ -58,6 +60,13 @@ const peoplePool: Person[] = [
   { name: "Aisha Khan", initials: "AK" },
   { name: "Diego Marin", initials: "DM" },
   { name: "Hannah Lee", initials: "HL" },
+  { name: "Marcus Johnson", initials: "MJ" },
+  { name: "Sarah Chen", initials: "SC" },
+  { name: "David Kim", initials: "DK" },
+  { name: "Emily Watson", initials: "EW" },
+  { name: "Carlos Ruiz", initials: "CR" },
+  { name: "Priya Patel", initials: "PP" },
+  { name: "Lucas Vance", initials: "LV" },
 ];
 
 const pickPeople = (n: number, offset = 0): Person[] =>
@@ -73,17 +82,17 @@ export const projects: Project[] = [
     phase: "Procurement",
     ownerOrg: "City of Charlotte",
     owner: { name: "Joey Cox", initials: "JC" },
-    openActionItems: 12,
-    openIssues: 4,
-    recentDecisions: 5,
-    upcomingMeetings: 2,
-    pendingTasks: 12,
-    meetingsThisWeek: 2,
     members: 6,
     participants: pickPeople(5, 0),
     health: "On track",
     progress: 65,
     lastUpdated: "2 hours ago",
+    financial: {
+      contractOriginalValue: 4_250_000,
+      totalPayAppApproved: 2_762_500,
+      addendumValue: 185_000,
+      totalProjectContract: 4_435_000,
+    },
   },
   {
     id: "northlake-bridge",
@@ -94,17 +103,17 @@ export const projects: Project[] = [
     phase: "Design",
     ownerOrg: "State",
     owner: { name: "Zeb Evans", initials: "ZE" },
-    openActionItems: 8,
-    openIssues: 6,
-    recentDecisions: 9,
-    upcomingMeetings: 3,
-    pendingTasks: 18,
-    meetingsThisWeek: 3,
     members: 9,
     participants: pickPeople(7, 1),
     health: "At risk",
     progress: 42,
     lastUpdated: "30 min ago",
+    financial: {
+      contractOriginalValue: 12_800_000,
+      totalPayAppApproved: 5_376_000,
+      addendumValue: 640_000,
+      totalProjectContract: 13_440_000,
+    },
   },
   {
     id: "stormwater-iv",
@@ -115,17 +124,17 @@ export const projects: Project[] = [
     phase: "Construction",
     ownerOrg: "City of Charlotte",
     owner: { name: "Brendan Reilly", initials: "BR" },
-    openActionItems: 4,
-    openIssues: 1,
-    recentDecisions: 2,
-    upcomingMeetings: 1,
-    pendingTasks: 9,
-    meetingsThisWeek: 1,
     members: 4,
     participants: pickPeople(4, 2),
     health: "On track",
     progress: 78,
     lastUpdated: "Yesterday",
+    financial: {
+      contractOriginalValue: 1_950_000,
+      totalPayAppApproved: 1_521_000,
+      addendumValue: 0,
+      totalProjectContract: 1_950_000,
+    },
   },
   {
     id: "midtown-greenway",
@@ -136,17 +145,17 @@ export const projects: Project[] = [
     phase: "Planning",
     ownerOrg: "City of Charlotte",
     owner: { name: "Olga Ortiz", initials: "OO" },
-    openActionItems: 3,
-    openIssues: 0,
-    recentDecisions: 1,
-    upcomingMeetings: 0,
-    pendingTasks: 5,
-    meetingsThisWeek: 0,
     members: 3,
     participants: pickPeople(3, 3),
     health: "On track",
     progress: 12,
     lastUpdated: "3 days ago",
+    financial: {
+      contractOriginalValue: 3_100_000,
+      totalPayAppApproved: 0,
+      addendumValue: 0,
+      totalProjectContract: 3_100_000,
+    },
   },
   {
     id: "airport-taxiway",
@@ -157,17 +166,17 @@ export const projects: Project[] = [
     phase: "Construction",
     ownerOrg: "Federal",
     owner: { name: "Ricardo Silva", initials: "RS" },
-    openActionItems: 11,
-    openIssues: 3,
-    recentDecisions: 6,
-    upcomingMeetings: 2,
-    pendingTasks: 14,
-    meetingsThisWeek: 2,
     members: 7,
     participants: pickPeople(6, 4),
     health: "On track",
     progress: 55,
     lastUpdated: "5 hours ago",
+    financial: {
+      contractOriginalValue: 6_700_000,
+      totalPayAppApproved: 3_685_000,
+      addendumValue: 220_000,
+      totalProjectContract: 6_920_000,
+    },
   },
   {
     id: "hawthorne-mixed",
@@ -178,17 +187,17 @@ export const projects: Project[] = [
     phase: "Design",
     ownerOrg: "Private",
     owner: { name: "Mei Tanaka", initials: "MT" },
-    openActionItems: 2,
-    openIssues: 5,
-    recentDecisions: 1,
-    upcomingMeetings: 0,
-    pendingTasks: 3,
-    meetingsThisWeek: 0,
     members: 5,
     participants: pickPeople(5, 5),
     health: "Off track",
     progress: 28,
     lastUpdated: "1 week ago",
+    financial: {
+      contractOriginalValue: 8_500_000,
+      totalPayAppApproved: 2_380_000,
+      addendumValue: 0,
+      totalProjectContract: 8_500_000,
+    },
   },
   {
     id: "westside-water",
@@ -199,17 +208,17 @@ export const projects: Project[] = [
     phase: "Procurement",
     ownerOrg: "City of Charlotte",
     owner: { name: "Aisha Khan", initials: "AK" },
-    openActionItems: 6,
-    openIssues: 2,
-    recentDecisions: 3,
-    upcomingMeetings: 1,
-    pendingTasks: 7,
-    meetingsThisWeek: 1,
     members: 5,
     participants: pickPeople(5, 6),
     health: "On track",
     progress: 33,
     lastUpdated: "Today",
+    financial: {
+      contractOriginalValue: 2_800_000,
+      totalPayAppApproved: 924_000,
+      addendumValue: 95_000,
+      totalProjectContract: 2_895_000,
+    },
   },
   {
     id: "harbor-closeout",
@@ -220,17 +229,17 @@ export const projects: Project[] = [
     phase: "Closeout",
     ownerOrg: "State",
     owner: { name: "Diego Marin", initials: "DM" },
-    openActionItems: 1,
-    openIssues: 0,
-    recentDecisions: 4,
-    upcomingMeetings: 0,
-    pendingTasks: 1,
-    meetingsThisWeek: 0,
     members: 4,
     participants: pickPeople(4, 7),
     health: "On track",
     progress: 100,
     lastUpdated: "2 weeks ago",
+    financial: {
+      contractOriginalValue: 5_100_000,
+      totalPayAppApproved: 5_100_000,
+      addendumValue: 310_000,
+      totalProjectContract: 5_410_000,
+    },
   },
   {
     id: "transit-hub",
@@ -241,42 +250,18 @@ export const projects: Project[] = [
     phase: "Design",
     ownerOrg: "Federal",
     owner: { name: "Hannah Lee", initials: "HL" },
-    openActionItems: 9,
-    openIssues: 4,
-    recentDecisions: 7,
-    upcomingMeetings: 2,
-    pendingTasks: 11,
-    meetingsThisWeek: 2,
     members: 8,
     participants: pickPeople(7, 8),
     health: "At risk",
     progress: 48,
     lastUpdated: "4 hours ago",
+    financial: {
+      contractOriginalValue: 18_200_000,
+      totalPayAppApproved: 8_736_000,
+      addendumValue: 1_200_000,
+      totalProjectContract: 19_400_000,
+    },
   },
 ];
 
 export const getProject = (id: string) => projects.find((p) => p.id === id);
-
-export type ActivityEvent = {
-  id: string;
-  type: "decision" | "action" | "issue" | "meeting" | "member";
-  title: string;
-  actor: Person;
-  timestamp: string;
-};
-
-export const recentActivity: Record<string, ActivityEvent[]> = {
-  "bryant-farms": [
-    { id: "a1", type: "decision", title: "Approved bid package #3", actor: { name: "Joey Cox", initials: "JC" }, timestamp: "2h ago" },
-    { id: "a2", type: "action", title: "Update easement schedule", actor: { name: "Olga Ortiz", initials: "OO" }, timestamp: "5h ago" },
-    { id: "a3", type: "issue", title: "Utility conflict on STA 12+50", actor: { name: "Brendan Reilly", initials: "BR" }, timestamp: "Yesterday" },
-    { id: "a4", type: "meeting", title: "Pre-construction kickoff", actor: { name: "Joey Cox", initials: "JC" }, timestamp: "Yesterday" },
-  ],
-};
-
-export const upcomingMeetings: Record<string, { id: string; title: string; when: string; attendees: number }[]> = {
-  "bryant-farms": [
-    { id: "m1", title: "Owner sync", when: "Tomorrow, 10:00", attendees: 6 },
-    { id: "m2", title: "Bid review", when: "Thu, 14:30", attendees: 4 },
-  ],
-};

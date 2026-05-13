@@ -6,7 +6,7 @@ import { getProject } from "@/lib/mock/projects";
 export const Route = createFileRoute("/_app/projects/$projectId")({
   head: ({ params }) => {
     const project = getProject(params.projectId);
-    const title = project ? `${project.name} — Mango Tech` : "Project — Mango Tech";
+    const title = project ? `${project.name} — Relay` : "Project — Relay";
     return {
       meta: [
         { title },

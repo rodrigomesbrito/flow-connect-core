@@ -9,14 +9,19 @@ import {
   KpiStat,
   NoResults,
   PageHeader,
-  TableBody,
-  TableFooter,
-  TableHeader,
-  TableShell,
   Toolbar,
   ToolbarFilter,
   ToolbarSearch,
 } from "@/components/data";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   sortIssues,
   useIssues,
@@ -28,7 +33,7 @@ import {
 import { useActionItems } from "@/lib/action-items/store";
 import { useMeetings } from "@/lib/meetings/store";
 import { ensureSeeded } from "@/lib/meetings/seed";
-import { IssueRow, ISSUES_GRID } from "@/components/issues/IssueRow";
+import { IssueRow } from "@/components/issues/IssueRow";
 import { IssueDialog } from "@/components/issues/IssueDialog";
 
 export const Route = createFileRoute("/_app/projects/$projectId/issues")({
@@ -116,6 +121,20 @@ function IssuesPage() {
     }
     return sortIssues(list);
   }, [issues, tab, statusFilter, severityFilter, ownerFilter, originFilter, query]);
+
+  // Pagination logic
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filtered.length / pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [tab, statusFilter, severityFilter, ownerFilter, originFilter, query]);
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page]);
 
   const openCreate = () => {
     setEditing(null);
@@ -290,52 +309,75 @@ function IssuesPage() {
           }
         />
       ) : filtered.length === 0 ? (
-        <TableShell>
+        <div className="bg-card border border-border/50 rounded-[14px] overflow-hidden">
           <NoResults
             message="No issues match your filters."
             onClear={clearFilters}
           />
-        </TableShell>
+        </div>
       ) : (
-        <TableShell>
-          <TableHeader
-            gridClassName={ISSUES_GRID}
-            columns={[
-              "Status",
-              "Issue",
-              "Owner",
-              "Severity",
-              "Mitigation",
-              "Origin",
-              "",
-            ]}
-          />
-          <TableBody>
-            {filtered.map((item) => (
-              <IssueRow
-                key={item.id}
-                issue={item}
-                projectId={projectId}
-                onEdit={openEdit}
-                linkedAction={
-                  item.linkedActionItemId
-                    ? actionsById.get(item.linkedActionItemId)
-                    : undefined
-                }
-              />
-            ))}
-          </TableBody>
-          <TableFooter>
-            <span>
-              {stats.blocking > 0 && (
-                <span className="text-destructive font-medium">
-                  {stats.blocking} blocking ·{" "}
-                </span>
-              )}
-              Showing {filtered.length} of {issues.length}
-            </span>
-          </TableFooter>
-        </TableShell>
+        <div className="bg-card border border-border/50 rounded-[14px] overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/40 hover:bg-muted/40">
+              <TableRow className="border-border/40 hover:bg-transparent">
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider pl-5 w-[130px]">Status</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Issue</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[140px]">Owner</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[120px]">Severity</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[140px]">Mitigation</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[100px]">Origin</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-right pr-5 w-[60px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginated.map((item) => (
+                <IssueRow
+                  key={item.id}
+                  issue={item}
+                  projectId={projectId}
+                  onEdit={openEdit}
+                  linkedAction={
+                    item.linkedActionItemId
+                      ? actionsById.get(item.linkedActionItemId)
+                      : undefined
+                  }
+                />
+              ))}
+            </TableBody>
+          </Table>
+
+          {/* Pagination Footer */}
+          {filtered.length > pageSize && (
+            <div className="flex items-center justify-between px-5 py-3 border-t border-border/40 bg-muted/10">
+              <div className="text-[12px] text-muted-foreground">
+                Showing <span className="font-medium text-foreground">{(page - 1) * pageSize + 1}</span> to <span className="font-medium text-foreground">{Math.min(page * pageSize, filtered.length)}</span> of <span className="font-medium text-foreground">{filtered.length}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="h-8 w-8 p-0 border-border/60 hover:bg-muted/50 rounded-md"
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <div className="text-[12px] font-medium text-muted-foreground min-w-[3rem] text-center">
+                  {page} / {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="h-8 w-8 p-0 border-border/60 hover:bg-muted/50 rounded-md"
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       <IssueDialog

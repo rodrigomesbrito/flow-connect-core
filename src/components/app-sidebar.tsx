@@ -1,15 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Inbox,
-  Reply,
-  MessageSquare,
-  CheckSquare,
-  MoreHorizontal,
-  Hash,
-  Plus,
-  ChevronDown,
-  Sparkles,
   FolderKanban,
+  Users,
+  Building2,
+  Sparkles,
+  Plus,
 } from "lucide-react";
 
 import {
@@ -24,36 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-const homeItems = [
-  { title: "Inbox", url: "/inbox", icon: Inbox, badge: 4 },
-  { title: "Replies", url: "/replies", icon: Reply },
-  { title: "Assigned Comments", url: "/assigned", icon: MessageSquare },
-  { title: "My Tasks", url: "/my-tasks", icon: CheckSquare },
-  { title: "More", url: "/more", icon: MoreHorizontal },
-];
-
-const spaces = [
-  { id: "bryant-farms", title: "Bryant Farms Rd", color: "oklch(0.62 0.18 250)" },
-  { id: "northlake-bridge", title: "Northlake Bridge", color: "oklch(0.62 0.22 300)" },
-  { id: "stormwater-iv", title: "Stormwater IV", color: "oklch(0.7 0.13 200)" },
-  { id: "airport-taxiway", title: "Airport Taxiway", color: "oklch(0.78 0.16 75)" },
-];
-
-const channels = [
-  { title: "General", url: "/channels/general", subtitle: "Mango Tech" },
-  { title: "Welcome", url: "/channels/welcome" },
-  { title: "Product", url: "/channels/product" },
-];
-
-const dms = [
-  { name: "Joey Cox", initials: "JC", unread: 2 },
-  { name: "Zeb Evans", initials: "ZE" },
-  { name: "Brendan", initials: "BR" },
-  { name: "Olga O.", initials: "OO" },
-  { name: "Ricardo", initials: "RI" },
-];
+import { projects } from "@/lib/mock/projects";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -69,131 +35,118 @@ export function AppSidebar() {
       <SidebarHeader className="px-3 pt-3 pb-2">
         <div className="flex items-center justify-between gap-2">
           {!collapsed && (
-            <div className="flex items-center gap-2 min-w-0">
+            <Link
+              to="/projects"
+              className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity"
+            >
               <div className="size-7 rounded-md bg-primary text-primary-foreground grid place-items-center shrink-0">
                 <Sparkles className="size-4" />
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-semibold truncate">Home</div>
+                <div className="text-sm font-semibold truncate">Relay</div>
               </div>
-            </div>
+            </Link>
           )}
-          <button className="size-7 rounded-md hover:bg-sidebar-accent grid place-items-center text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors">
-            <Plus className="size-4" />
-          </button>
+          {collapsed && (
+            <Link
+              to="/projects"
+              className="size-7 rounded-md bg-primary text-primary-foreground grid place-items-center shrink-0 hover:opacity-80 transition-opacity"
+            >
+              <Sparkles className="size-4" />
+            </Link>
+          )}
         </div>
       </SidebarHeader>
 
       <SidebarContent className="gap-1">
+        {/* Workspace navigation */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {homeItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url as string}>
-                      <item.icon className="size-4" />
-                      <span>{item.title}</span>
-                      {item.badge && !collapsed && (
-                        <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between">
-            <span>Spaces</span>
-            <ChevronDown className="size-3 opacity-60" />
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {spaces.map((space) => {
-                const url = `/projects/${space.id}`;
-                return (
-                  <SidebarMenuItem key={space.id}>
-                    <SidebarMenuButton asChild isActive={isActive(url)} tooltip={space.title}>
-                      <Link to="/projects/$projectId" params={{ projectId: space.id }}>
-                        <span
-                          className="size-5 rounded-md grid place-items-center text-[10px] font-bold text-white shrink-0"
-                          style={{ backgroundColor: space.color }}
-                        >
-                          <FolderKanban className="size-3" />
-                        </span>
-                        <span>{space.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between">
-            <span>Channels</span>
-            <ChevronDown className="size-3 opacity-60" />
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {channels.map((c) => (
-                <SidebarMenuItem key={c.title}>
-                  <SidebarMenuButton tooltip={c.title}>
-                    <Hash className="size-4" />
-                    <span className="truncate">
-                      {c.title}
-                      {c.subtitle && (
-                        <span className="text-muted-foreground"> – {c.subtitle}</span>
-                      )}
-                    </span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
               <SidebarMenuItem>
-                <SidebarMenuButton className="text-muted-foreground">
-                  <Plus className="size-4" />
-                  <span>Add chat</span>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/projects") && !currentPath.includes("/projects/")}
+                  tooltip="Projects"
+                >
+                  <Link to="/projects">
+                    <FolderKanban className="size-4" />
+                    <span>Projects</span>
+                    {!collapsed && (
+                      <span className="ml-auto text-[10px] font-medium text-sidebar-foreground/50 tabular-nums">
+                        {projects.length}
+                      </span>
+                    )}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/people")}
+                  tooltip="People"
+                >
+                  <Link to="/people">
+                    <Users className="size-4" />
+                    <span>People</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/organizations")}
+                  tooltip="Organizations"
+                >
+                  <Link to="/organizations">
+                    <Building2 className="size-4" />
+                    <span>Organizations</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Projects quick access */}
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between">
-            <span>Direct Messages</span>
-            <ChevronDown className="size-3 opacity-60" />
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Recent projects</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {dms.map((dm) => (
-                <SidebarMenuItem key={dm.name}>
-                  <SidebarMenuButton tooltip={dm.name}>
-                    <Avatar className="size-5">
-                      <AvatarFallback className="text-[9px] bg-muted">
-                        {dm.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="truncate">{dm.name}</span>
-                    {dm.unread && !collapsed && (
-                      <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
-                        {dm.unread}
-                      </span>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {projects
+                .filter((p) => p.status !== "Completed")
+                .slice(0, 6)
+                .map((project) => {
+                  const url = `/projects/${project.id}`;
+                  return (
+                    <SidebarMenuItem key={project.id}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(url)}
+                        tooltip={project.name}
+                      >
+                        <Link
+                          to="/projects/$projectId"
+                          params={{ projectId: project.id }}
+                        >
+                          <span
+                            className="size-5 rounded-md grid place-items-center text-[10px] font-bold text-white shrink-0"
+                            style={{ backgroundColor: project.color }}
+                          >
+                            <FolderKanban className="size-3" />
+                          </span>
+                          <span className="truncate">{project.name}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               <SidebarMenuItem>
-                <SidebarMenuButton className="text-muted-foreground">
-                  <Plus className="size-4" />
-                  <span>Add people</span>
+                <SidebarMenuButton asChild tooltip="All projects">
+                  <Link to="/projects">
+                    <Plus className="size-4 text-sidebar-foreground/50" />
+                    <span className="text-sidebar-foreground/50">All projects</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

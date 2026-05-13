@@ -9,7 +9,7 @@ import { signIn } from "@/lib/auth";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in — Mango Tech" },
+      { title: "Sign in — Relay" },
       { name: "description", content: "Sign in to your project workspace." },
     ],
   }),
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("joey@mangotech.com");
+  const [email, setEmail] = useState("joey@relay.app");
   const [password, setPassword] = useState("••••••••");
 
   function handleSubmit(e: React.FormEvent) {
@@ -36,7 +36,7 @@ function LoginPage() {
             <div className="size-9 rounded-lg bg-primary text-primary-foreground grid place-items-center">
               <Sparkles className="size-5" />
             </div>
-            <span className="text-lg font-semibold">Mango Tech</span>
+            <span className="text-lg font-semibold">Relay</span>
           </div>
 
           <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>

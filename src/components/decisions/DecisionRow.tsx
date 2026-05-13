@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { ExternalLink, Pencil, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
@@ -34,21 +35,24 @@ export function DecisionRow({
   const dateLabel = decision.decidedAt ?? decision.publishedAt;
 
   return (
-    <div
+    <TableRow
       className={cn(
-        "group grid grid-cols-[120px_1fr_auto_auto_auto_32px] items-center gap-3 border-b border-border px-4 py-2.5 hover:bg-muted/30 transition-colors",
+        "group hover:bg-muted/20 border-border/40 transition-colors",
         reverted && "opacity-60",
       )}
     >
       {/* Status */}
-      <DecisionStatusMenu
-        value={decision.status}
-        onChange={(next: DecisionStatus) =>
-          updateDecisionMeta(projectId, decision.id, { status: next })
-        }
-      />
+      <TableCell className="pl-5 py-3 align-middle w-[130px]">
+        <DecisionStatusMenu
+          value={decision.status}
+          onChange={(next: DecisionStatus) =>
+            updateDecisionMeta(projectId, decision.id, { status: next })
+          }
+        />
+      </TableCell>
 
       {/* Text — clickable to source line */}
+      <TableCell className="py-3 align-middle">
       <Tooltip delayDuration={400}>
         <TooltipTrigger asChild>
           <Link
@@ -56,8 +60,8 @@ export function DecisionRow({
             params={{ projectId, meetingId: decision.meetingId }}
             search={search}
             className={cn(
-              "min-w-0 truncate text-sm flex items-center gap-1.5 hover:text-primary transition-colors",
-              reverted && "line-through",
+              "min-w-0 truncate text-[14px] flex items-center gap-1.5 hover:text-primary transition-colors",
+              reverted && "line-through text-muted-foreground",
             )}
           >
             <span className="truncate">{decision.text}</span>
@@ -79,9 +83,11 @@ export function DecisionRow({
           </div>
         </TooltipContent>
       </Tooltip>
+      </TableCell>
 
       {/* Decided by */}
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-[120px]">
+      <TableCell className="py-3 align-middle w-[160px]">
+      <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground min-w-[120px]">
         {decision.decidedBy ? (
           <>
             <Avatar className="h-5 w-5">
@@ -98,13 +104,17 @@ export function DecisionRow({
           </span>
         )}
       </div>
+      </TableCell>
 
       {/* Date */}
-      <div className="text-xs text-muted-foreground tabular-nums">
+      <TableCell className="py-3 align-middle w-[120px]">
+      <div className="text-[13px] text-muted-foreground tabular-nums">
         {format(new Date(dateLabel), "MMM d, yyyy")}
       </div>
+      </TableCell>
 
       {/* Source meeting */}
+      <TableCell className="py-3 align-middle w-[200px]">
       <Link
         to="/projects/$projectId/meetings/$meetingId"
         params={{ projectId, meetingId: decision.meetingId }}
@@ -116,8 +126,10 @@ export function DecisionRow({
           <span className="opacity-70 shrink-0">L{decision.sourceLine}</span>
         )}
       </Link>
+      </TableCell>
 
       {/* Edit */}
+      <TableCell className="pr-5 py-3 align-middle text-right w-[60px]">
       <Button
         variant="ghost"
         size="icon"
@@ -126,6 +138,7 @@ export function DecisionRow({
       >
         <Pencil className="h-3.5 w-3.5" />
       </Button>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }

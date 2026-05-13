@@ -129,3 +129,22 @@ export const sortDecisions = (items: Decision[]): Decision[] => {
     );
   });
 };
+
+/* ---------------- stats hook ---------------- */
+
+export type DecisionStats = {
+  proposed: number;
+  approved: number;
+  reverted: number;
+  total: number;
+};
+
+export const useDecisionStats = (projectId: string): DecisionStats => {
+  const items = useDecisions(projectId);
+  return {
+    proposed: items.filter((i) => i.status === "Proposed").length,
+    approved: items.filter((i) => i.status === "Approved").length,
+    reverted: items.filter((i) => i.status === "Reverted").length,
+    total: items.length,
+  };
+};

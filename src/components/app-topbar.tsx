@@ -18,11 +18,11 @@ export function AppTopbar({ showSidebarTrigger = true }: { showSidebarTrigger?: 
   const session = typeof window !== "undefined" ? getSession() : null;
   const initials = session?.name
     ? session.name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase()
     : "U";
 
   return (
@@ -39,9 +39,6 @@ export function AppTopbar({ showSidebarTrigger = true }: { showSidebarTrigger?: 
           </div>
           Relay
         </Link>
-        <WorkspaceNavLink to="/projects" icon={FolderKanban} label="Projects" />
-        <WorkspaceNavLink to="/people" icon={Users} label="People" />
-        <WorkspaceNavLink to="/organizations" icon={Building2} label="Organizations" />
       </div>
 
       <div className="flex-1 max-w-2xl mx-auto">

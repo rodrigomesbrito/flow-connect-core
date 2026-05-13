@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { Building2, Plus, Users as UsersIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PageHeader } from "@/components/data/PageHeader";
 import { Toolbar, ToolbarSearch } from "@/components/data/Toolbar";
 import { EmptyState, NoResults } from "@/components/data/EmptyState";
 import { workspaceOrganizations, type WorkspaceOrg } from "@/lib/mock/people";
@@ -34,62 +33,75 @@ function OrganizationsPage() {
   }, [query]);
 
   return (
-    <div className="px-6 py-6 max-w-7xl mx-auto">
-      <PageHeader
-        title="Organizations"
-        description="Companies, agencies and partners across your workspace."
-        actions={
-          <Button size="sm" className="gap-2">
-            <Plus className="size-4" /> New organization
+    <div className="flex flex-col h-full bg-background">
+      {/* Page Header */}
+      <header className="flex-none px-8 py-6 border-b border-border/40">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-[22px] font-semibold tracking-tight text-foreground">Organizations</h1>
+            <p className="text-[14px] text-muted-foreground mt-1">
+              Companies, agencies and partners across your workspace.
+            </p>
+          </div>
+          <Button className="h-9 px-4 text-[13px] font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md">
+            <Plus className="size-4 mr-2" /> New organization
           </Button>
-        }
-      />
-
-      <Toolbar
-        hasActiveFilters={query.trim().length > 0}
-        onClear={() => setQuery("")}
-      >
-        <ToolbarSearch
-          value={query}
-          onChange={setQuery}
-          placeholder="Search organizations…"
-        />
-      </Toolbar>
-
-      {workspaceOrganizations.length === 0 ? (
-        <EmptyState
-          icon={Building2}
-          title="No organizations yet"
-          description="Add your first organization to start grouping people and projects."
-        />
-      ) : filtered.length === 0 ? (
-        <NoResults onClear={() => setQuery("")} />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((org) => (
-            <OrgCard key={org.id} org={org} />
-          ))}
         </div>
-      )}
+      </header>
+
+      {/* Toolbar */}
+      <div className="flex-none px-8 py-3 border-b border-border/40 bg-muted/10">
+        <Toolbar
+          hasActiveFilters={query.trim().length > 0}
+          onClear={() => setQuery("")}
+          className="mb-0"
+        >
+          <ToolbarSearch
+            value={query}
+            onChange={setQuery}
+            placeholder="Search organizations…"
+          />
+        </Toolbar>
+      </div>
+
+      <div className="flex-1 overflow-auto p-6 bg-muted/10">
+        <div className="max-w-6xl mx-auto">
+          {workspaceOrganizations.length === 0 ? (
+            <EmptyState
+              icon={Building2}
+              title="No organizations yet"
+              description="Add your first organization to start grouping people and projects."
+            />
+          ) : filtered.length === 0 ? (
+            <NoResults onClear={() => setQuery("")} />
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((org) => (
+                <OrgCard key={org.id} org={org} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
 function OrgCard({ org }: { org: WorkspaceOrg }) {
   return (
-    <div className="group rounded-xl border border-border bg-card p-4 hover:border-foreground/20 hover:shadow-sm transition-all">
-      <div className="flex items-start gap-3">
+    <div className="group rounded-[14px] border border-border/50 bg-card p-5 hover:border-border hover:bg-muted/20 transition-all cursor-pointer">
+      <div className="flex items-start gap-4">
         <span
-          className="size-9 rounded-lg grid place-items-center text-white shrink-0"
+          className="size-11 rounded-xl flex items-center justify-center text-white shrink-0"
           style={{ backgroundColor: org.color }}
         >
-          <Building2 className="size-4.5" />
+          <Building2 className="size-5" strokeWidth={2} />
         </span>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold truncate">{org.name}</div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+        <div className="min-w-0 flex-1 pt-0.5">
+          <div className="text-[15px] font-semibold text-foreground truncate leading-tight">{org.name}</div>
+          <div className="flex items-center gap-3 text-[12px] text-muted-foreground mt-1.5 font-medium">
             <span className="inline-flex items-center gap-1">
-              <UsersIcon className="size-3" />
+              <UsersIcon className="size-3.5" />
               {org.people.length}
             </span>
             <span>·</span>
@@ -99,41 +111,6 @@ function OrgCard({ org }: { org: WorkspaceOrg }) {
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="mt-3 flex items-center justify-between">
-        <div className="flex -space-x-1.5">
-          {org.people.slice(0, 5).map((p) => (
-            <Avatar key={p.id} className="size-6 ring-2 ring-card">
-              <AvatarFallback
-                className="text-white text-[10px] font-semibold"
-                style={{ backgroundColor: p.color }}
-              >
-                {p.initials}
-              </AvatarFallback>
-            </Avatar>
-          ))}
-          {org.people.length > 5 && (
-            <span className="size-6 rounded-full bg-muted ring-2 ring-card text-[10px] font-semibold grid place-items-center text-muted-foreground">
-              +{org.people.length - 5}
-            </span>
-          )}
-        </div>
-
-        {org.projects.length > 0 && (
-          <div className="flex items-center -space-x-1">
-            {org.projects.slice(0, 3).map((p) => (
-              <Link
-                key={p.id}
-                to="/projects/$projectId"
-                params={{ projectId: p.id }}
-                title={p.name}
-                className="size-4 rounded-sm ring-2 ring-card hover:scale-110 transition-transform"
-                style={{ backgroundColor: p.color }}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

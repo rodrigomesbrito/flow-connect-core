@@ -1,17 +1,17 @@
-import { FolderKanban, AlertTriangle, ListChecks, CalendarClock } from "lucide-react";
+import { FolderKanban } from "lucide-react";
 import type { Project } from "@/lib/mock/projects";
 
 export function ProjectsOverview({ projects }: { projects: Project[] }) {
   const active = projects.filter((p) => p.status === "Active").length;
-  const issues = projects.reduce((s, p) => s + p.openIssues, 0);
-  const tasks = projects.reduce((s, p) => s + p.pendingTasks, 0);
-  const meetings = projects.reduce((s, p) => s + p.meetingsThisWeek, 0);
+  const planning = projects.filter((p) => p.status === "Planning").length;
+  const onHold = projects.filter((p) => p.status === "On Hold").length;
+  const completed = projects.filter((p) => p.status === "Completed").length;
 
   const cards = [
-    { label: "Active Projects", value: active, icon: FolderKanban, iconClass: "bg-info/15 text-info" },
-    { label: "Open Issues", value: issues, icon: AlertTriangle, iconClass: "bg-destructive/15 text-destructive" },
-    { label: "Pending Tasks", value: tasks, icon: ListChecks, iconClass: "bg-success/15 text-success" },
-    { label: "Meetings This Week", value: meetings, icon: CalendarClock, iconClass: "bg-warning/20 text-warning-foreground" },
+    { label: "Active", value: active, color: "text-emerald-600 bg-emerald-500/10" },
+    { label: "Planning", value: planning, color: "text-blue-600 bg-blue-500/10" },
+    { label: "On Hold", value: onHold, color: "text-amber-600 bg-amber-500/10" },
+    { label: "Completed", value: completed, color: "text-muted-foreground bg-muted" },
   ];
 
   return (
@@ -19,13 +19,15 @@ export function ProjectsOverview({ projects }: { projects: Project[] }) {
       {cards.map((c) => (
         <div
           key={c.label}
-          className="bg-card border border-border rounded-xl p-4 hover:border-foreground/20 transition-colors"
+          className="bg-card border border-border/80 rounded-xl p-5 shadow-sm"
         >
-          <div className={`size-9 rounded-lg grid place-items-center ${c.iconClass}`}>
-            <c.icon className="size-4" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[13px] font-medium text-muted-foreground">{c.label}</div>
+            <div className={`size-8 rounded-md grid place-items-center ${c.color}`}>
+              <FolderKanban className="size-4" strokeWidth={2.5} />
+            </div>
           </div>
-          <div className="mt-3 text-2xl font-semibold leading-tight">{c.value}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{c.label}</div>
+          <div className="text-3xl font-bold tracking-tight text-foreground">{c.value}</div>
         </div>
       ))}
     </div>

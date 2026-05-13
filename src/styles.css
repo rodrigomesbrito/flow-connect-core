@@ -76,8 +76,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.02 270);
 
-  /* ClickUp blue */
-  --primary: oklch(0.62 0.18 250);
+  /* Requested custom blue */
+  --primary: #0F89E4;
   --primary-foreground: oklch(0.99 0 0);
 
   --secondary: oklch(0.97 0.005 250);
@@ -114,12 +114,12 @@
   /* Navy #08273F */
   --sidebar: #08273F;
   --sidebar-foreground: oklch(0.95 0.01 240);
-  --sidebar-primary: oklch(0.7 0.17 250);
+  --sidebar-primary: #0F89E4;
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(1 0 0 / 8%);
   --sidebar-accent-foreground: oklch(0.99 0 0);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.62 0.18 250);
+  --sidebar-ring: #0F89E4;
 }
 
 .dark {
@@ -132,7 +132,7 @@
   --popover: oklch(0.2 0.018 270);
   --popover-foreground: oklch(0.97 0.003 270);
 
-  --primary: oklch(0.7 0.17 250);
+  --primary: #0F89E4;
   --primary-foreground: oklch(0.15 0.04 250);
 
   --secondary: oklch(0.26 0.02 250);
@@ -168,12 +168,12 @@
 
   --sidebar: #08273F;
   --sidebar-foreground: oklch(0.95 0.01 240);
-  --sidebar-primary: oklch(0.7 0.17 250);
+  --sidebar-primary: #0F89E4;
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(1 0 0 / 8%);
   --sidebar-accent-foreground: oklch(0.99 0 0);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.7 0.17 250);
+  --sidebar-ring: #0F89E4;
 }
 
 @layer base {

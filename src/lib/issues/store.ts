@@ -247,3 +247,24 @@ export const sortIssues = (items: Issue[]): Issue[] => {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 };
+
+/* ---------------- stats hook ---------------- */
+
+export type IssueStats = {
+  open: number;
+  inReview: number;
+  blocking: number;
+  resolved: number;
+  total: number;
+};
+
+export const useIssueStats = (projectId: string): IssueStats => {
+  const items = useIssues(projectId);
+  return {
+    open: items.filter((i) => i.status === "Open").length,
+    inReview: items.filter((i) => i.status === "In Review").length,
+    blocking: items.filter((i) => i.blocking && i.status !== "Resolved").length,
+    resolved: items.filter((i) => i.status === "Resolved").length,
+    total: items.length,
+  };
+};

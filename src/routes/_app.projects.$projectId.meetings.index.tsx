@@ -1,5 +1,5 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { createFileRoute, notFound, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
 import {
   Plus,
@@ -17,6 +17,15 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getProject } from "@/lib/mock/projects";
 import { useMeetings, type Meeting, type MeetingStatus } from "@/lib/meetings/store";
 import { NewMeetingDialog } from "@/components/meetings/NewMeetingDialog";
@@ -65,6 +74,20 @@ function MeetingsListPage() {
       );
     });
   }, [meetings, query, status]);
+
+  // Pagination logic
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filtered.length / pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, status]);
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page]);
 
   const counts = {
     total: meetings.length,
@@ -119,12 +142,54 @@ function MeetingsListPage() {
       {filtered.length === 0 ? (
         <EmptyState onCreate={() => setOpen(true)} hasMeetings={meetings.length > 0} />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <ul className="divide-y divide-border">
-            {filtered.map((m) => (
-              <MeetingRow key={m.id} meeting={m} projectId={project.id} />
-            ))}
-          </ul>
+        <div className="bg-card border border-border/50 rounded-[14px] overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/40 hover:bg-muted/40">
+              <TableRow className="border-border/40 hover:bg-transparent">
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider pl-5 w-[300px]">Meeting</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[150px]">Status</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-[180px]">Attendees</TableHead>
+                <TableHead className="h-10 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-right pr-5">Items</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginated.map((m) => (
+                <MeetingRow key={m.id} meeting={m} projectId={project.id} />
+              ))}
+            </TableBody>
+          </Table>
+
+          {/* Pagination Footer */}
+          {filtered.length > pageSize && (
+            <div className="flex items-center justify-between px-5 py-3 border-t border-border/40 bg-muted/10">
+              <div className="text-[12px] text-muted-foreground">
+                Showing <span className="font-medium text-foreground">{(page - 1) * pageSize + 1}</span> to <span className="font-medium text-foreground">{Math.min(page * pageSize, filtered.length)}</span> of <span className="font-medium text-foreground">{filtered.length}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="h-8 w-8 p-0 border-border/60 hover:bg-muted/50 rounded-md"
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <div className="text-[12px] font-medium text-muted-foreground min-w-[3rem] text-center">
+                  {page} / {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="h-8 w-8 p-0 border-border/60 hover:bg-muted/50 rounded-md"
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -158,6 +223,7 @@ function Stat({
 }
 
 function MeetingRow({ meeting, projectId }: { meeting: Meeting; projectId: string }) {
+  const navigate = useNavigate();
   const counts = {
     action: meeting.items.filter((i) => i.kind === "action").length,
     issue: meeting.items.filter((i) => i.kind === "issue").length,
@@ -165,25 +231,26 @@ function MeetingRow({ meeting, projectId }: { meeting: Meeting; projectId: strin
   };
 
   return (
-    <li>
-      <Link
-        to="/projects/$projectId/meetings/$meetingId"
-        params={{ projectId, meetingId: meeting.id }}
-        className="grid grid-cols-12 items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors"
-      >
-        <div className="col-span-5 min-w-0">
-          <div className="text-sm font-medium truncate">{meeting.title}</div>
-          <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+    <TableRow
+      onClick={() => navigate({ to: "/projects/$projectId/meetings/$meetingId", params: { projectId, meetingId: meeting.id } })}
+      className="group hover:bg-muted/20 border-border/40 transition-colors cursor-pointer"
+    >
+      <TableCell className="pl-5 py-3 align-middle">
+        <div className="min-w-0">
+          <div className="text-[14px] font-medium truncate group-hover:text-primary transition-colors">{meeting.title}</div>
+          <div className="text-[12px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
             <CalendarIcon className="size-3" />
             {format(new Date(meeting.date), "PP")}
           </div>
         </div>
+      </TableCell>
 
-        <div className="col-span-2">
-          <StatusBadge status={meeting.status} />
-        </div>
+      <TableCell className="py-3 align-middle">
+        <StatusBadge status={meeting.status} />
+      </TableCell>
 
-        <div className="col-span-2 flex -space-x-1.5">
+      <TableCell className="py-3 align-middle">
+        <div className="flex -space-x-1.5">
           {meeting.attendees.slice(0, 4).map((name) => (
             <Avatar key={name} className="size-6 ring-2 ring-card">
               <AvatarFallback className="text-[9px] font-semibold bg-muted">
@@ -197,14 +264,16 @@ function MeetingRow({ meeting, projectId }: { meeting: Meeting; projectId: strin
             </span>
           )}
         </div>
+      </TableCell>
 
-        <div className="col-span-3 flex items-center justify-end gap-3 text-xs text-muted-foreground">
+      <TableCell className="pr-5 py-3 align-middle text-right">
+        <div className="flex items-center justify-end gap-3 text-[12px] text-muted-foreground">
           <ItemCount icon={Gavel} count={counts.decision} />
           <ItemCount icon={AlertTriangle} count={counts.issue} />
           <ItemCount icon={CheckSquare} count={counts.action} />
         </div>
-      </Link>
-    </li>
+      </TableCell>
+    </TableRow>
   );
 }
 

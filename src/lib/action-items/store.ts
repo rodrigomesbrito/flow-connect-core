@@ -280,3 +280,24 @@ export const sortActionItems = (items: ActionItem[]): ActionItem[] => {
     return PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority];
   });
 };
+
+/* ---------------- stats hook ---------------- */
+
+export type ActionItemStats = {
+  open: number;
+  inProgress: number;
+  overdue: number;
+  done: number;
+  total: number;
+};
+
+export const useActionItemStats = (projectId: string): ActionItemStats => {
+  const items = useActionItems(projectId);
+  return {
+    open: items.filter((i) => i.status === "Open").length,
+    inProgress: items.filter((i) => i.status === "In Progress").length,
+    overdue: items.filter(isOverdue).length,
+    done: items.filter((i) => i.status === "Done").length,
+    total: items.length,
+  };
+};

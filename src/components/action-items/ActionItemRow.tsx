@@ -12,6 +12,7 @@ import {
   Trash2,
   User,
 } from "lucide-react";
+import { TableCell, TableRow } from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,19 +86,22 @@ export function ActionItemRow({
   const meetingSearch = item.sourceLine ? { line: item.sourceLine } : {};
 
   return (
-    <div
+    <TableRow
       className={cn(
-        "group grid grid-cols-[120px_1fr_auto_auto_auto_auto_32px] items-center gap-3 border-b border-border px-4 py-2.5 hover:bg-muted/30 transition-colors",
+        "group hover:bg-muted/20 border-border/40 transition-colors",
         isDone && "opacity-60",
       )}
     >
       {/* Status */}
-      <StatusMenu
-        value={item.status}
-        onChange={(next) => updateActionItem(projectId, item.id, { status: next })}
-      />
+      <TableCell className="pl-5 py-3 align-middle w-[130px]">
+        <StatusMenu
+          value={item.status}
+          onChange={(next) => updateActionItem(projectId, item.id, { status: next })}
+        />
+      </TableCell>
 
       {/* Text — clickable when from meeting (jumps to source line) */}
+      <TableCell className="py-3 align-middle">
       <Tooltip delayDuration={400}>
         <TooltipTrigger asChild>
           {fromMeeting ? (
@@ -138,9 +142,11 @@ export function ActionItemRow({
           )}
         </TooltipContent>
       </Tooltip>
+      </TableCell>
 
       {/* Assignee */}
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-[110px]">
+      <TableCell className="py-3 align-middle w-[150px]">
+      <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground min-w-[110px]">
         {item.assignee ? (
           <>
             <Avatar className="h-5 w-5">
@@ -157,8 +163,10 @@ export function ActionItemRow({
           </span>
         )}
       </div>
+      </TableCell>
 
       {/* Due date */}
+      <TableCell className="py-3 align-middle w-[120px]">
       <Popover>
         <PopoverTrigger asChild>
           <button
@@ -208,8 +216,10 @@ export function ActionItemRow({
           )}
         </PopoverContent>
       </Popover>
+      </TableCell>
 
       {/* Priority */}
+      <TableCell className="py-3 align-middle w-[120px]">
       <Select
         value={item.priority}
         onValueChange={(v) =>
@@ -227,8 +237,10 @@ export function ActionItemRow({
           <SelectItem value="Low">Low</SelectItem>
         </SelectContent>
       </Select>
+      </TableCell>
 
       {/* Origin */}
+      <TableCell className="py-3 align-middle w-[180px]">
       <div className="text-[11px] flex items-center gap-1">
         {fromMeeting ? (
           <Link
@@ -266,8 +278,10 @@ export function ActionItemRow({
           </Tooltip>
         )}
       </div>
+      </TableCell>
 
       {/* Menu */}
+      <TableCell className="pr-5 py-3 align-middle text-right w-[60px]">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -318,6 +332,7 @@ export function ActionItemRow({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }

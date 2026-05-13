@@ -42,14 +42,14 @@ export function ProjectsToolbar({
     onChange({ ...filters, [key]: value });
 
   return (
-    <div className="flex flex-col lg:flex-row gap-2 mb-5">
-      <div className="relative flex-1 max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+    <div className="flex flex-col lg:flex-row gap-3 mb-6 items-start lg:items-center">
+      <div className="relative w-full lg:max-w-xs">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
         <Input
           value={filters.query}
           onChange={(e) => set("query", e.target.value)}
           placeholder="Search projects..."
-          className="pl-9 h-9 bg-card"
+          className="pl-8 h-8 text-xs bg-transparent shadow-sm"
         />
       </div>
       <div className="flex flex-wrap gap-2">
@@ -90,15 +90,18 @@ function FilterSelect({
   onChange: (v: string) => void;
   placeholderForAll?: string;
 }) {
+  const isAll = value === "All";
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-9 min-w-[140px] bg-card">
-        <span className="text-muted-foreground text-xs mr-1">{label}:</span>
+      <SelectTrigger 
+        className={`h-8 text-xs font-medium border-dashed transition-colors ${!isAll ? 'border-primary/40 bg-primary/5 text-primary' : 'bg-transparent text-foreground hover:bg-muted/50'}`}
+      >
+        <span className={!isAll ? "text-primary/70 mr-1.5" : "text-muted-foreground mr-1.5"}>{label}</span>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {options.map((o) => (
-          <SelectItem key={o} value={o}>
+          <SelectItem key={o} value={o} className="text-xs">
             {o === "All" && placeholderForAll ? placeholderForAll : o}
           </SelectItem>
         ))}

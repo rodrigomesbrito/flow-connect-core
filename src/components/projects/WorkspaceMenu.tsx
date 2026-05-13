@@ -40,25 +40,25 @@ export function WorkspaceMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="w-full group flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all duration-200 text-left"
+          className="w-full group flex items-center gap-2.5 p-1.5 rounded-md hover:bg-white/5 transition-colors text-left"
           aria-label="Open workspace menu"
         >
           <span
-            className="size-10 rounded-lg grid place-items-center text-white shrink-0 shadow-lg"
+            className="size-7 rounded-[6px] grid place-items-center shrink-0"
             style={{
-              backgroundColor: current.color,
-              boxShadow: `0 8px 20px -8px ${current.color}`,
+              backgroundColor: `color-mix(in srgb, ${current.color} 20%, transparent)`,
+              color: current.color
             }}
           >
-            <FolderKanban className="size-5" />
+            <FolderKanban className="size-4" strokeWidth={2} />
           </span>
           {!collapsed && (
             <>
-              <div className="min-w-0 flex-1 flex flex-col">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40 leading-tight">
-                  Workspace
+              <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                <span className="text-[10px] font-medium tracking-wide text-white/40 leading-none truncate">
+                  {current.ownerOrg}
                 </span>
-                <span className="text-sm font-semibold truncate text-sidebar-foreground group-hover:text-[oklch(0.82_0.13_240)] transition-colors">
+                <span className="text-[13px] font-medium leading-none truncate text-white/90 group-hover:text-white transition-colors">
                   {current.name}
                 </span>
               </div>

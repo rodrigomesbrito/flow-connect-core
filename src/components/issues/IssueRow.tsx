@@ -9,6 +9,7 @@ import {
   Shield,
   Trash2,
 } from "lucide-react";
+import { TableCell, TableRow } from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,8 +69,7 @@ const ringColor = (name: string) => {
   return palette[Math.abs(hash) % palette.length];
 };
 
-export const ISSUES_GRID =
-  "grid-cols-[110px_1fr_120px_110px_120px_90px_32px]";
+export const ISSUES_GRID = ""; // Deprecated, will be removed soon.
 
 export function IssueRow({
   issue,
@@ -88,22 +88,23 @@ export function IssueRow({
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
-    <div
+    <TableRow
       className={cn(
-        "group grid items-center gap-3 px-4 py-3 transition-colors",
-        ISSUES_GRID,
-        "hover:bg-muted/40",
+        "group hover:bg-muted/20 border-border/40 transition-colors",
         resolved && "opacity-60",
         issue.blocking && !resolved && "bg-rose-50/30 dark:bg-rose-950/10",
       )}
     >
       {/* Status */}
-      <IssueStatusMenu
-        value={issue.status}
-        onChange={(next) => updateIssue(projectId, issue.id, { status: next })}
-      />
+      <TableCell className="pl-5 py-3 align-middle w-[130px]">
+        <IssueStatusMenu
+          value={issue.status}
+          onChange={(next) => updateIssue(projectId, issue.id, { status: next })}
+        />
+      </TableCell>
 
       {/* Issue text + blocking marker */}
+      <TableCell className="py-3 align-middle">
       <Tooltip delayDuration={400}>
         <TooltipTrigger asChild>
           {fromMeeting ? (
@@ -122,7 +123,7 @@ export function IssueRow({
                   Block
                 </span>
               )}
-              <span className="truncate">{issue.text}</span>
+              <span className="truncate text-[14px]">{issue.text}</span>
               <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50 shrink-0" />
             </Link>
           ) : (
@@ -138,7 +139,7 @@ export function IssueRow({
                   Block
                 </span>
               )}
-              <span className="truncate">{issue.text}</span>
+              <span className="truncate text-[14px]">{issue.text}</span>
             </div>
           )}
         </TooltipTrigger>
@@ -159,9 +160,11 @@ export function IssueRow({
           </div>
         </TooltipContent>
       </Tooltip>
+      </TableCell>
 
       {/* Owner */}
-      <div className="flex items-center gap-2 min-w-0">
+      <TableCell className="py-3 align-middle w-[140px]">
+        <div className="flex items-center gap-2 min-w-0">
         {issue.owner ? (
           <>
             <span
@@ -177,13 +180,15 @@ export function IssueRow({
             </span>
           </>
         ) : (
-          <span className="text-xs italic text-muted-foreground">
+          <span className="text-[13px] italic text-muted-foreground">
             Unassigned
           </span>
         )}
       </div>
+      </TableCell>
 
       {/* Severity */}
+      <TableCell className="py-3 align-middle w-[120px]">
       <Select
         value={issue.severity}
         onValueChange={(v) =>
@@ -202,8 +207,10 @@ export function IssueRow({
           <SelectItem value="Low">Low</SelectItem>
         </SelectContent>
       </Select>
+      </TableCell>
 
       {/* Mitigation */}
+      <TableCell className="py-3 align-middle w-[140px]">
       <div className="text-[11px] min-w-0">
         {linkedAction ? (
           <Tooltip>
@@ -223,9 +230,11 @@ export function IssueRow({
           <span className="text-muted-foreground/60">—</span>
         )}
       </div>
+      </TableCell>
 
       {/* Origin */}
-      <div className="text-[11px]">
+      <TableCell className="py-3 align-middle w-[100px]">
+      <div className="text-[12px] font-medium">
         {fromMeeting ? (
           <Link
             to="/projects/$projectId/meetings/$meetingId"
@@ -242,8 +251,10 @@ export function IssueRow({
           <span className="text-muted-foreground">Manual</span>
         )}
       </div>
+      </TableCell>
 
       {/* Row menu */}
+      <TableCell className="pr-5 py-3 align-middle text-right w-[60px]">
       <RowMenu>
         <DropdownMenuItem onClick={() => onEdit(issue)}>
           <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
@@ -302,6 +313,7 @@ export function IssueRow({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }

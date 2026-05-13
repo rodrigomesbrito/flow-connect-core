@@ -30,10 +30,10 @@ function AppLayout() {
     pathname === "/people" ||
     pathname === "/organizations";
 
-  const sidebar = isWorkspacePage
-    ? null
-    : project
-      ? <ProjectSidebar project={project} />
+  const sidebar = project
+    ? <ProjectSidebar project={project} />
+    : isWorkspacePage
+      ? <AppSidebar />
       : <AppSidebar />;
 
   return (
