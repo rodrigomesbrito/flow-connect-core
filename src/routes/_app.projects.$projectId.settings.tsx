@@ -46,7 +46,6 @@ export const Route = createFileRoute("/_app/projects/$projectId/settings")({
 const sections = [
   { id: "general", label: "General", icon: SettingsIcon },
   { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "integrations", label: "Integrations", icon: Plug },
   { id: "permissions", label: "Permissions", icon: Shield },
   { id: "danger", label: "Danger zone", icon: AlertTriangle },
 ] as const;
