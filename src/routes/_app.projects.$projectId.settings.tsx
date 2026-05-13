@@ -3,16 +3,10 @@ import { useState } from "react";
 import {
   Settings as SettingsIcon,
   Bell,
-  Plug,
   Shield,
   Trash2,
   Save,
   Check,
-  Slack,
-  Mail,
-  Calendar,
-  FileText,
-  Github,
   AlertTriangle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -20,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Select,
   SelectContent,
@@ -52,7 +46,6 @@ export const Route = createFileRoute("/_app/projects/$projectId/settings")({
 const sections = [
   { id: "general", label: "General", icon: SettingsIcon },
   { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "integrations", label: "Integrations", icon: Plug },
   { id: "permissions", label: "Permissions", icon: Shield },
   { id: "danger", label: "Danger zone", icon: AlertTriangle },
 ] as const;
@@ -86,15 +79,6 @@ function SettingsPage() {
     issues: true,
     meetings: false,
     weeklyDigest: true,
-  });
-
-  // Integrations
-  const [integrations, setIntegrations] = useState({
-    slack: true,
-    email: true,
-    calendar: false,
-    drive: true,
-    github: false,
   });
 
   // Permissions
@@ -236,46 +220,6 @@ function SettingsPage() {
                 onChange={(v) => setNotif({ ...notif, weeklyDigest: v })}
               />
               <CardFooter onSave={handleSave} />
-            </Card>
-          )}
-
-          {active === "integrations" && (
-            <Card title="Integrations" description="Connect external tools to sync data automatically.">
-              <Integration
-                icon={Slack}
-                name="Slack"
-                description="Post project updates to a channel."
-                connected={integrations.slack}
-                onToggle={(v) => setIntegrations({ ...integrations, slack: v })}
-              />
-              <Integration
-                icon={Mail}
-                name="Email digest"
-                description="Daily summary delivered to your inbox."
-                connected={integrations.email}
-                onToggle={(v) => setIntegrations({ ...integrations, email: v })}
-              />
-              <Integration
-                icon={Calendar}
-                name="Google Calendar"
-                description="Sync meetings to your calendar."
-                connected={integrations.calendar}
-                onToggle={(v) => setIntegrations({ ...integrations, calendar: v })}
-              />
-              <Integration
-                icon={FileText}
-                name="Google Drive"
-                description="Attach documents from Drive."
-                connected={integrations.drive}
-                onToggle={(v) => setIntegrations({ ...integrations, drive: v })}
-              />
-              <Integration
-                icon={Github}
-                name="GitHub"
-                description="Link issues to commits and PRs."
-                connected={integrations.github}
-                onToggle={(v) => setIntegrations({ ...integrations, github: v })}
-              />
             </Card>
           )}
 
@@ -423,47 +367,6 @@ function Toggle({
         <div className="text-xs text-muted-foreground mt-0.5">{description}</div>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
-    </div>
-  );
-}
-
-function Integration({
-  icon: Icon,
-  name,
-  description,
-  connected,
-  onToggle,
-}: {
-  icon: typeof Slack;
-  name: string;
-  description: string;
-  connected: boolean;
-  onToggle: (v: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
-      <span className="size-10 rounded-lg bg-muted grid place-items-center shrink-0">
-        <Icon className="size-5 text-foreground/70" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{name}</span>
-          {connected && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-1">
-              <span className="size-1.5 rounded-full bg-success" />
-              Connected
-            </Badge>
-          )}
-        </div>
-        <div className="text-xs text-muted-foreground truncate">{description}</div>
-      </div>
-      <Button
-        variant={connected ? "outline" : "default"}
-        size="sm"
-        onClick={() => onToggle(!connected)}
-      >
-        {connected ? "Disconnect" : "Connect"}
-      </Button>
     </div>
   );
 }
