@@ -371,47 +371,6 @@ function Toggle({
   );
 }
 
-function Integration({
-  icon: Icon,
-  name,
-  description,
-  connected,
-  onToggle,
-}: {
-  icon: typeof Slack;
-  name: string;
-  description: string;
-  connected: boolean;
-  onToggle: (v: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
-      <span className="size-10 rounded-lg bg-muted grid place-items-center shrink-0">
-        <Icon className="size-5 text-foreground/70" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{name}</span>
-          {connected && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-1">
-              <span className="size-1.5 rounded-full bg-success" />
-              Connected
-            </Badge>
-          )}
-        </div>
-        <div className="text-xs text-muted-foreground truncate">{description}</div>
-      </div>
-      <Button
-        variant={connected ? "outline" : "default"}
-        size="sm"
-        onClick={() => onToggle(!connected)}
-      >
-        {connected ? "Disconnect" : "Connect"}
-      </Button>
-    </div>
-  );
-}
-
 function DangerRow({
   title,
   description,
