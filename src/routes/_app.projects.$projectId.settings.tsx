@@ -81,15 +81,6 @@ function SettingsPage() {
     weeklyDigest: true,
   });
 
-  // Integrations
-  const [integrations, setIntegrations] = useState({
-    slack: true,
-    email: true,
-    calendar: false,
-    drive: true,
-    github: false,
-  });
-
   // Permissions
   const [defaultRole, setDefaultRole] = useState("Member");
   const [requireApproval, setRequireApproval] = useState(true);
@@ -229,46 +220,6 @@ function SettingsPage() {
                 onChange={(v) => setNotif({ ...notif, weeklyDigest: v })}
               />
               <CardFooter onSave={handleSave} />
-            </Card>
-          )}
-
-          {active === "integrations" && (
-            <Card title="Integrations" description="Connect external tools to sync data automatically.">
-              <Integration
-                icon={Slack}
-                name="Slack"
-                description="Post project updates to a channel."
-                connected={integrations.slack}
-                onToggle={(v) => setIntegrations({ ...integrations, slack: v })}
-              />
-              <Integration
-                icon={Mail}
-                name="Email digest"
-                description="Daily summary delivered to your inbox."
-                connected={integrations.email}
-                onToggle={(v) => setIntegrations({ ...integrations, email: v })}
-              />
-              <Integration
-                icon={Calendar}
-                name="Google Calendar"
-                description="Sync meetings to your calendar."
-                connected={integrations.calendar}
-                onToggle={(v) => setIntegrations({ ...integrations, calendar: v })}
-              />
-              <Integration
-                icon={FileText}
-                name="Google Drive"
-                description="Attach documents from Drive."
-                connected={integrations.drive}
-                onToggle={(v) => setIntegrations({ ...integrations, drive: v })}
-              />
-              <Integration
-                icon={Github}
-                name="GitHub"
-                description="Link issues to commits and PRs."
-                connected={integrations.github}
-                onToggle={(v) => setIntegrations({ ...integrations, github: v })}
-              />
             </Card>
           )}
 
